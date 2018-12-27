@@ -39,6 +39,9 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {
 
+	/**
+	 * 该bean 对象的父类
+	 */
 	@Nullable
 	private String parentName;
 
@@ -50,6 +53,8 @@ public class GenericBeanDefinition extends AbstractBeanDefinition {
 	 * @see #setScope
 	 * @see #setConstructorArgumentValues
 	 * @see #setPropertyValues
+	 *
+	 * 默认创建的 时候 父类时没有属性的
 	 */
 	public GenericBeanDefinition() {
 		super();
@@ -59,12 +64,18 @@ public class GenericBeanDefinition extends AbstractBeanDefinition {
 	 * Create a new GenericBeanDefinition as deep copy of the given
 	 * bean definition.
 	 * @param original the original bean definition to copy from
+	 *
+	 *                 深拷贝 创建beanDefinition
 	 */
 	public GenericBeanDefinition(BeanDefinition original) {
 		super(original);
 	}
 
 
+	/**
+	 * 设置父 parentName
+	 * @param parentName
+	 */
 	@Override
 	public void setParentName(@Nullable String parentName) {
 		this.parentName = parentName;

@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @see BeansDtdResolver
  * @see PluggableSchemaResolver
  *
- * 实现了 实体解析器的 接口 通过 将这个对象设置到 xml解析工厂影响解析过程
+ * 这个类就是用来 获取 xml 的 解析验证文件的 默认情况下 要验证 xml 是否合理是 要去网上下载的 这个不用太深究 因为涉及到解析xml 相关的规则
  */
 public class DelegatingEntityResolver implements EntityResolver {
 

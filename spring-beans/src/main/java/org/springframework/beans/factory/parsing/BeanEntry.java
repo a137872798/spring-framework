@@ -21,6 +21,8 @@ package org.springframework.beans.factory.parsing;
  *
  * @author Rob Harrop
  * @since 2.0
+ *
+ * bean在解析时 作为一个 entry 避免被重复 解析
  */
 public class BeanEntry implements ParseState.Entry {
 

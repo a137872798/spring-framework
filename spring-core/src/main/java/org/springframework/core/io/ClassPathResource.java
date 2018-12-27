@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
 public class ClassPathResource extends AbstractFileResolvingResource {
 
 	/**
-	 * 类路径
+	 * 文件路径
 	 */
 	private final String path;
 

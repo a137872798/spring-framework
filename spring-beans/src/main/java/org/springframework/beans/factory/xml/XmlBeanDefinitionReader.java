@@ -373,6 +373,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		}
 		//如果 无法继续 将 resource 添加到 set容器中 如果已经存在 同类型对象 会无法添加
 		//hashSet在添加已经存在的元素时 会 抛出异常  单线程加载的 话 可能会出现这种情况吗??? 多线程加载 能保证 可见性吗
+		//这里是 对应在 配置文件中加载另一个文件 然后出现了 相同的 资源对象 就会冲突
 		if (!currentResources.add(encodedResource)) {
 			throw new BeanDefinitionStoreException(
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
@@ -447,7 +448,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
-			//将xml 对象解析成document 对象
+			//将xml 对象解析成document 对象  这里 还没有 抽取 属性 但是应该通过了验证
 			Document doc = doLoadDocument(inputSource, resource);
 			//执行生成beanDefinition 的 逻辑
 			int count = registerBeanDefinitions(doc, resource);

@@ -31,6 +31,8 @@ import org.springframework.lang.Nullable;
  *
  * @author Rob Harrop
  * @since 2.0
+ *
+ * bean 在 解析时的状态
  */
 public final class ParseState {
 
@@ -41,6 +43,8 @@ public final class ParseState {
 
 	/**
 	 * Internal {@link LinkedList} storage.
+	 *
+	 * 在解析过程中的bean 被 封装成entry 对象并设置到该linkedlist中
 	 */
 	private final LinkedList<Entry> state;
 

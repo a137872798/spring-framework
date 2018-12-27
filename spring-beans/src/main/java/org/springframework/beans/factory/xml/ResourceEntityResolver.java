@@ -52,6 +52,8 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.context.ApplicationContext
  *
  * 如果存在 给定的 ResourceLoader 就会使用这个对象 来 生成 解析器对象 这个对象是要设置到 javax.xml的工厂类下的
+ *
+ * 父类 就是 根据 资源类型 自动搜索 资源
  */
 public class ResourceEntityResolver extends DelegatingEntityResolver {
 
@@ -75,18 +77,22 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 	}
 
 
+	//要理解这个类 需要了解 org.xml 是 怎么解析xml 文件的  这里不用太深入
 	@Override
 	@Nullable
 	public InputSource resolveEntity(String publicId, @Nullable String systemId) throws SAXException, IOException {
 		InputSource source = super.resolveEntity(publicId, systemId);
+		//当父类处理失败时 才调用下面
 		if (source == null && systemId != null) {
 			String resourcePath = null;
 			try {
+				//使用utf-8 解码
 				String decodedSystemId = URLDecoder.decode(systemId, "UTF-8");
 				String givenUrl = new URL(decodedSystemId).toString();
 				String systemRootUrl = new File("").toURI().toURL().toString();
 				// Try relative to resource base if currently in system root.
 				if (givenUrl.startsWith(systemRootUrl)) {
+					//去除 系统根路径
 					resourcePath = givenUrl.substring(systemRootUrl.length());
 				}
 			}
@@ -102,6 +108,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate XML entity [" + systemId + "] as resource [" + resourcePath + "]");
 				}
+				//使用给定的 资源加载器 加载路径
 				Resource resource = this.resourceLoader.getResource(resourcePath);
 				source = new InputSource(resource.getInputStream());
 				source.setPublicId(publicId);

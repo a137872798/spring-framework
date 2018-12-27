@@ -54,12 +54,16 @@ import org.springframework.util.CollectionUtils;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * spring 下 用来解析 xsd 模式 xml 的解析器
  */
 public class PluggableSchemaResolver implements EntityResolver {
 
 	/**
 	 * The location of the file that defines schema mappings.
 	 * Can be present in multiple JAR files.
+	 *
+	 * 默认路径
 	 */
 	public static final String DEFAULT_SCHEMA_MAPPINGS_LOCATION = "META-INF/spring.schemas";
 
@@ -69,9 +73,13 @@ public class PluggableSchemaResolver implements EntityResolver {
 	@Nullable
 	private final ClassLoader classLoader;
 
+	/**
+	 * 标记 schema 资源的路径
+	 */
 	private final String schemaMappingsLocation;
 
-	/** Stores the mapping of schema URL -> local schema path. */
+	/** Stores the mapping of schema URL -> local schema path.
+	 * 存放路径下的 所有资源*/
 	@Nullable
 	private volatile Map<String, String> schemaMappings;
 
@@ -103,6 +111,13 @@ public class PluggableSchemaResolver implements EntityResolver {
 		this.schemaMappingsLocation = schemaMappingsLocation;
 	}
 
+	/**
+	 * 解析 并获取 xml 输入流的 过程
+	 * @param publicId
+	 * @param systemId
+	 * @return
+	 * @throws IOException
+	 */
 	@Override
 	@Nullable
 	public InputSource resolveEntity(String publicId, @Nullable String systemId) throws IOException {
@@ -111,7 +126,9 @@ public class PluggableSchemaResolver implements EntityResolver {
 					"] and system id [" + systemId + "]");
 		}
 
+		//必须 存在 systemId  然后 xsd 是没有 publicId的
 		if (systemId != null) {
+			//尝试从缓存中 获取 系统id 对应的 资源路径
 			String resourceLocation = getSchemaMappings().get(systemId);
 			if (resourceLocation != null) {
 				Resource resource = new ClassPathResource(resourceLocation, this.classLoader);
@@ -147,6 +164,7 @@ public class PluggableSchemaResolver implements EntityResolver {
 						logger.trace("Loading schema mappings from [" + this.schemaMappingsLocation + "]");
 					}
 					try {
+						//从本地 目标路径 加载所有的 资源
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.schemaMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {

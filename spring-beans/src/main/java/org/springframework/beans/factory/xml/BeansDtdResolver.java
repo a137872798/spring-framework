@@ -40,6 +40,9 @@ import org.springframework.lang.Nullable;
  * @author Colin Sampaleanu
  * @since 04.06.2003
  * @see ResourceEntityResolver
+ *
+ *
+ * spring 中 用来解析 DTD xml 的 解析器对象
  */
 public class BeansDtdResolver implements EntityResolver {
 
@@ -57,8 +60,10 @@ public class BeansDtdResolver implements EntityResolver {
 			logger.trace("Trying to resolve XML entity with public ID [" + publicId +
 					"] and system ID [" + systemId + "]");
 		}
+		//只 处理 dtd 结尾的 文件
 		if (systemId != null && systemId.endsWith(DTD_EXTENSION)) {
 			int lastPathSeparator = systemId.lastIndexOf('/');
+			//从最后一个分隔符开始 寻找DTD_NAME
 			int dtdNameStart = systemId.indexOf(DTD_NAME, lastPathSeparator);
 			if (dtdNameStart != -1) {
 				String dtdFile = DTD_NAME + DTD_EXTENSION;
@@ -66,7 +71,9 @@ public class BeansDtdResolver implements EntityResolver {
 					logger.trace("Trying to locate [" + dtdFile + "] in Spring jar on classpath");
 				}
 				try {
+					//生成Resource 对象
 					Resource resource = new ClassPathResource(dtdFile, getClass());
+					//将输入流 包装成 inputSource 这个对象就是被解析的 xml 流
 					InputSource source = new InputSource(resource.getInputStream());
 					source.setPublicId(publicId);
 					source.setSystemId(systemId);
@@ -84,6 +91,7 @@ public class BeansDtdResolver implements EntityResolver {
 		}
 
 		// Use the default behavior -> download from website or wherever.
+		//不做 处理就会从网上下载
 		return null;
 	}
 
