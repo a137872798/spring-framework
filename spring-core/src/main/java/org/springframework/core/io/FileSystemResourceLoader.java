@@ -34,6 +34,8 @@ package org.springframework.core.io;
  * @since 1.1.3
  * @see DefaultResourceLoader
  * @see org.springframework.context.support.FileSystemXmlApplicationContext
+ *
+ * 文件资源加载对象
  */
 public class FileSystemResourceLoader extends DefaultResourceLoader {
 
@@ -45,6 +47,8 @@ public class FileSystemResourceLoader extends DefaultResourceLoader {
 	 * @return the corresponding Resource handle
 	 * @see FileSystemResource
 	 * @see org.springframework.web.context.support.ServletContextResourceLoader#getResourceByPath
+	 *
+	 * 重写服务的 加载资源方法 将资源加载成 fileSystemContextResource 对象
 	 */
 	@Override
 	protected Resource getResourceByPath(String path) {

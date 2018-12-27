@@ -44,8 +44,14 @@ import org.springframework.lang.Nullable;
  */
 public class XmlReaderContext extends ReaderContext {
 
+	/**
+	 * 代表这个上下文对象是由哪个 XmlBeanDefinitionReader 生成的
+	 */
 	private final XmlBeanDefinitionReader reader;
 
+	/**
+	 * 命名空间 检测对象
+	 */
 	private final NamespaceHandlerResolver namespaceHandlerResolver;
 
 

@@ -26,15 +26,23 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @since 2.0.2
+ *
+ * 每个bean 对象的 额外信息  通过解析资源文件将 对应的属性设置进去
  */
 public class DocumentDefaultsDefinition implements DefaultsDefinition {
 
+	/**
+	 * 是否懒加载
+	 */
 	@Nullable
 	private String lazyInit;
 
 	@Nullable
 	private String merge;
 
+	/**
+	 * 是否自动注入
+	 */
 	@Nullable
 	private String autowire;
 

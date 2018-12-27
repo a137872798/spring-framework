@@ -40,6 +40,8 @@ import org.springframework.util.ResourceUtils;
  *
  * @author Juergen Hoeller
  * @since 28.12.2003
+ *
+ * 资源骨架类
  */
 public abstract class AbstractResource implements Resource {
 
@@ -52,11 +54,13 @@ public abstract class AbstractResource implements Resource {
 	public boolean exists() {
 		// Try file existence: can we find the file in the file system?
 		try {
+			//判断 文件是否存在
 			return getFile().exists();
 		}
 		catch (IOException ex) {
 			// Fall back to stream existence: can we open the stream?
 			try {
+				//如果在访问文件的过程中 出错 也是代表 资源是存在的
 				getInputStream().close();
 				return true;
 			}
@@ -94,6 +98,8 @@ public abstract class AbstractResource implements Resource {
 	/**
 	 * This implementation throws a FileNotFoundException, assuming
 	 * that the resource cannot be resolved to a URL.
+	 *
+	 * 骨架类 默认 不能实现getURL 方法 每个子类 通过 重写该方法实现自己的逻辑
 	 */
 	@Override
 	public URL getURL() throws IOException {
@@ -103,6 +109,8 @@ public abstract class AbstractResource implements Resource {
 	/**
 	 * This implementation builds a URI based on the URL returned
 	 * by {@link #getURL()}.
+	 *
+	 * 将URL 转换成 上层的 URI 对象
 	 */
 	@Override
 	public URI getURI() throws IOException {
@@ -129,6 +137,8 @@ public abstract class AbstractResource implements Resource {
 	 * with the result of {@link #getInputStream()}.
 	 * <p>This is the same as in {@link Resource}'s corresponding default method
 	 * but mirrored here for efficient JVM-level dispatching in a class hierarchy.
+	 *
+	 * 通过 输入流 生成 channel 对象
 	 */
 	@Override
 	public ReadableByteChannel readableChannel() throws IOException {
@@ -140,6 +150,8 @@ public abstract class AbstractResource implements Resource {
 	 * content length. Subclasses will almost always be able to provide
 	 * a more optimal version of this, e.g. checking a File length.
 	 * @see #getInputStream()
+	 *
+	 * 获取内容长度
 	 */
 	@Override
 	public long contentLength() throws IOException {
@@ -148,6 +160,7 @@ public abstract class AbstractResource implements Resource {
 			long size = 0;
 			byte[] buf = new byte[256];
 			int read;
+			//将数据 读取到 数组中并记录 字节数  一般也是让子类重写这个方法
 			while ((read = is.read(buf)) != -1) {
 				size += read;
 			}

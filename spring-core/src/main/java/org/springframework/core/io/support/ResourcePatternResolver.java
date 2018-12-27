@@ -50,6 +50,8 @@ import org.springframework.core.io.ResourceLoader;
  * @see org.springframework.core.io.ResourceLoader
  * @see org.springframework.context.ApplicationContext
  * @see org.springframework.context.ResourceLoaderAware
+ *
+ * 使得一次可以加载多个资源
  */
 public interface ResourcePatternResolver extends ResourceLoader {
 
@@ -59,6 +61,8 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * retrieves all matching resources for a given name (e.g. "/beans.xml"),
 	 * for example in the root of all deployed JAR files.
 	 * @see org.springframework.core.io.ResourceLoader#CLASSPATH_URL_PREFIX
+	 *
+	 * 加载多资源的 标识符
 	 */
 	String CLASSPATH_ALL_URL_PREFIX = "classpath*:";
 

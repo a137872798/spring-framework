@@ -41,9 +41,14 @@ import org.springframework.util.Assert;
  * @see ClassPathResource
  * @see FileSystemResource
  * @see UrlResource
+ *
+ * 根据 输入流 获取资源对象
  */
 public class InputStreamResource extends AbstractResource {
 
+	/**
+	 * 输入流资源对象
+	 */
 	private final InputStream inputStream;
 
 	private final String description;

@@ -24,6 +24,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
  *
  * @author Juergen Hoeller
  * @since 2.0.3
+ *
+ * 根据 bean的 definition 对象生成 beanName
  */
 public class DefaultBeanNameGenerator implements BeanNameGenerator {
 

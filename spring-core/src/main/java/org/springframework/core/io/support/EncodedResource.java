@@ -41,14 +41,27 @@ import org.springframework.util.ObjectUtils;
  * @see Resource#getInputStream()
  * @see java.io.Reader
  * @see java.nio.charset.Charset
+ *
+ * 将 输入流 封装成一个  encoder 对象  默认情况编码符对象为null  为了 解耦单独抽出这个类型对象
  */
 public class EncodedResource implements InputStreamSource {
 
+	/**
+	 * 内部包含了 资源对象
+	 */
 	private final Resource resource;
 
+	//下面这2个对象就是用来生成 resource 的  编码集
+
+	/**
+	 * 使用的 编码字符
+	 */
 	@Nullable
 	private final String encoding;
 
+	/**
+	 * 编码符对象
+	 */
 	@Nullable
 	private final Charset charset;
 

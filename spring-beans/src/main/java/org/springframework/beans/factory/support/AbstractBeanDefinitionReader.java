@@ -45,22 +45,36 @@ import org.springframework.util.Assert;
  * @author Chris Beams
  * @since 11.12.2003
  * @see BeanDefinitionReaderUtils
+ *
+ * 读取资源 并生成 BeanDefinition 对象  生成 beanDefinition 的 方法由子类实现
  */
 public abstract class AbstractBeanDefinitionReader implements BeanDefinitionReader, EnvironmentCapable {
 
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 注册 beanDefinition 对象  DefaultListablefactory  就是该对象的实现 具备 注册 beanDefinition 的职能
+	 */
 	private final BeanDefinitionRegistry registry;
 
+	/**
+	 * 资源加载对象 将路径解析成resource
+	 */
 	@Nullable
 	private ResourceLoader resourceLoader;
 
+	/**
+	 * 加载bean 的类加载器
+	 */
 	@Nullable
 	private ClassLoader beanClassLoader;
 
 	private Environment environment;
 
+	/**
+	 * 生成beanName 的对象
+	 */
 	private BeanNameGenerator beanNameGenerator = new DefaultBeanNameGenerator();
 
 
@@ -80,20 +94,25 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * in the form of a BeanDefinitionRegistry
 	 * @see #setResourceLoader
 	 * @see #setEnvironment
+	 *
+	 * 传入一个 registry 对象 一般是传入 factory 对象
 	 */
 	protected AbstractBeanDefinitionReader(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		this.registry = registry;
 
 		// Determine ResourceLoader to use.
+		// 如果registry 对象 同时是 resourceLoader 的 子类 就 转型 并赋值
 		if (this.registry instanceof ResourceLoader) {
 			this.resourceLoader = (ResourceLoader) this.registry;
 		}
 		else {
+			//默认使用能 匹配 classPath*的 资源加载对象
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
 
 		// Inherit Environment if possible
+		// 这里是设置 环境对象
 		if (this.registry instanceof EnvironmentCapable) {
 			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
 		}
@@ -102,6 +121,8 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		}
 	}
 
+
+	//获取bean 工厂和 获取 registry 是一个方法
 
 	public final BeanDefinitionRegistry getBeanFactory() {
 		return this.registry;
@@ -180,16 +201,30 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	}
 
 
+	/**
+	 * 加载 资源对象
+	 * @param resources the resource descriptors
+	 * @return
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public int loadBeanDefinitions(Resource... resources) throws BeanDefinitionStoreException {
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
 		for (Resource resource : resources) {
+			//记录加载成功的 数量
 			count += loadBeanDefinitions(resource);
 		}
 		return count;
 	}
 
+	/**
+	 * 根据指定location 加载资源对象
+	 * @param location the resource location, to be loaded with the ResourceLoader
+	 * (or ResourcePatternResolver) of this bean definition reader
+	 * @return
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
 		return loadBeanDefinitions(location, null);
@@ -209,8 +244,11 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #getResourceLoader()
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource)
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
+	 *
+	 * set 存放的是加载成功的资源对象
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		//获取资源加载对象
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
@@ -221,6 +259,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			// Resource pattern matching available.
 			try {
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				//传入 资源数组对象 生成 beanDefinition 对象
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -237,6 +276,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		}
 		else {
 			// Can only load single resources by absolute URL.
+			//加载单个 对象
 			Resource resource = resourceLoader.getResource(location);
 			int count = loadBeanDefinitions(resource);
 			if (actualResources != null) {

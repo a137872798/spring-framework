@@ -36,6 +36,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 1.1
  * @see org.springframework.core.io.Resource
+ *
+ * 读取 spring 配置文件内容 并生成 BeanDefinition对象
  */
 public interface BeanDefinitionReader {
 

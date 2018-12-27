@@ -39,6 +39,8 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @since 28.12.2003
  * @see java.net.URL
+ *
+ * 根据 URI 对象 获取资源信息
  */
 public class UrlResource extends AbstractFileResolvingResource {
 
@@ -67,8 +69,10 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	public UrlResource(URI uri) throws MalformedURLException {
 		Assert.notNull(uri, "URI must not be null");
+		//将 uri 转换成url 并设置
 		this.uri = uri;
 		this.url = uri.toURL();
+		//清理后的 url 对象
 		this.cleanedUrl = getCleanedUrl(this.url, uri.toString());
 	}
 
@@ -122,6 +126,8 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 * as following after a "#" separator)
 	 * @throws MalformedURLException if the given URL specification is not valid
 	 * @see java.net.URI#URI(String, String, String)
+	 *
+	 * 通过 protocol  location fragment 生成uri 之后的操作一致
 	 */
 	public UrlResource(String protocol, String location, @Nullable String fragment) throws MalformedURLException  {
 		try {
@@ -143,8 +149,11 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 * @param originalPath the original URL path
 	 * @return the cleaned URL (possibly the original URL as-is)
 	 * @see org.springframework.util.StringUtils#cleanPath
+	 *
+	 * 处理后的 url 对象
 	 */
 	private URL getCleanedUrl(URL originalUrl, String originalPath) {
+		//将原始路径处理后 生成新的 url 对象
 		String cleanedPath = StringUtils.cleanPath(originalPath);
 		if (!cleanedPath.equals(originalPath)) {
 			try {
@@ -168,6 +177,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	@Override
 	public InputStream getInputStream() throws IOException {
 		URLConnection con = this.url.openConnection();
+		//这里是一个 缓存处理
 		ResourceUtils.useCachesIfNecessary(con);
 		try {
 			return con.getInputStream();

@@ -44,12 +44,21 @@ import org.springframework.util.StringUtils;
  * @since 10.03.2004
  * @see FileSystemResourceLoader
  * @see org.springframework.context.support.ClassPathXmlApplicationContext
+ *
+ * 默认的 资源加载类实现
  */
 public class DefaultResourceLoader implements ResourceLoader {
 
+	/**
+	 * 类加载器对象
+	 */
 	@Nullable
 	private ClassLoader classLoader;
 
+	/**
+	 * 存放用来解析资源的对象  Resource resolve(String location, ResourceLoader resourceLoader);
+	 * 这个对象 是 spring 对用户开放的 解析策略对象
+	 */
 	private final Set<ProtocolResolver> protocolResolvers = new LinkedHashSet<>(4);
 
 	private final Map<Class<?>, Map<Resource, ?>> resourceCaches = new ConcurrentHashMap<>(4);
@@ -60,6 +69,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * <p>ClassLoader access will happen using the thread context class loader
 	 * at the time of this ResourceLoader's initialization.
 	 * @see java.lang.Thread#getContextClassLoader()
+	 *
+	 * 未设置 类加载器对象时  获取默认类加载器 由application -> classPath -> bootstrap
 	 */
 	public DefaultResourceLoader() {
 		this.classLoader = ClassUtils.getDefaultClassLoader();
@@ -104,6 +115,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * resolution rules. It may therefore also override any default rules.
 	 * @since 4.3
 	 * @see #getProtocolResolvers()
+	 *
+	 * 设置 解析资源的对象
 	 */
 	public void addProtocolResolver(ProtocolResolver resolver) {
 		Assert.notNull(resolver, "ProtocolResolver must not be null");
@@ -114,6 +127,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * Return the collection of currently registered protocol resolvers,
 	 * allowing for introspection as well as modification.
 	 * @since 4.3
+	 *
+	 * 获取用来解析资源的对象
 	 */
 	public Collection<ProtocolResolver> getProtocolResolvers() {
 		return this.protocolResolvers;
@@ -127,6 +142,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> Map<Resource, T> getResourceCache(Class<T> valueType) {
+		//这个接口 原来可以传 Function
 		return (Map<Resource, T>) this.resourceCaches.computeIfAbsent(valueType, key -> new ConcurrentHashMap<>());
 	}
 
@@ -140,20 +156,30 @@ public class DefaultResourceLoader implements ResourceLoader {
 	}
 
 
+	/**
+	 * 通过指定位置获取 资源对象  第一级 通过 protocolResolver 进行解析失败的情况 根据 资源类型 分别生成不同的resource 对象并返回
+	 * @param location the resource location
+	 * @return
+	 */
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
 
+		//将 传入的 资源路径 经过所有 解析资源路径的对象
 		for (ProtocolResolver protocolResolver : this.protocolResolvers) {
+			//尝试 解析 一旦成功 就返回结果对象
 			Resource resource = protocolResolver.resolve(location, this);
 			if (resource != null) {
 				return resource;
 			}
 		}
 
+		//这里 代表 以传入的 protocolResolver 解析失败
+		// 如果以 /开头  就 解析成 classPathContextResource 对象 子类 通过 覆写这个方法 生成 File资源对象
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
+		//如果是 classPath 开头 就创建 classpathResource 对象
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
@@ -165,6 +191,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 			}
 			catch (MalformedURLException ex) {
 				// No URL -> resolve as resource path.
+				// 没有对应上 任何 url 类型时  比如 "D:/Users/chenming673/Documents/spark.txt"
+				// 默认会使用 classpathContext 生成
 				return getResourceByPath(location);
 			}
 		}
@@ -189,6 +217,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 	/**
 	 * ClassPathResource that explicitly expresses a context-relative path
 	 * through implementing the ContextResource interface.
+	 *
+	 * 以classpath 解析 资源的对象
 	 */
 	protected static class ClassPathContextResource extends ClassPathResource implements ContextResource {
 

@@ -39,6 +39,8 @@ import org.springframework.util.ResourceUtils;
  *
  * @author Juergen Hoeller
  * @since 3.0
+ *
+ * 该对象 是 解析了 URL 对象的 资源对象
  */
 public abstract class AbstractFileResolvingResource extends AbstractResource {
 
@@ -46,18 +48,26 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	public boolean exists() {
 		try {
 			URL url = getURL();
+			//是文件 资源的 情况下 照常处理
 			if (ResourceUtils.isFileURL(url)) {
 				// Proceed with file system resolution
 				return getFile().exists();
 			}
 			else {
+				//这里处理的是 非 FileResource 的 对象
+
 				// Try a URL connection content-length header
+				// 创建资源连接对象
 				URLConnection con = url.openConnection();
 				customizeConnection(con);
+				//这里 代表是 一个网络资源 url 就是 一个域名
 				HttpURLConnection httpCon =
 						(con instanceof HttpURLConnection ? (HttpURLConnection) con : null);
+				//如果创建的connection 是 Http类型的
 				if (httpCon != null) {
+					//获取 响应信息
 					int code = httpCon.getResponseCode();
+					//请求 成功 代表通过该 网络 url 成功 获取到了资源信息
 					if (code == HttpURLConnection.HTTP_OK) {
 						return true;
 					}
@@ -65,16 +75,19 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 						return false;
 					}
 				}
+				//非 HttpUrl 的情况 只要 通过 url 连接到资源后 能获取到长度就代表存在该资源
 				if (con.getContentLengthLong() > 0) {
 					return true;
 				}
 				if (httpCon != null) {
 					// No HTTP OK status, and no content-length header: give up
+					// 非 200 且 非 404 直接关闭 因为没法确认情况
 					httpCon.disconnect();
 					return false;
 				}
 				else {
 					// Fall back to stream existence: can we open the stream?
+					// 关闭资源系统
 					getInputStream().close();
 					return true;
 				}
@@ -85,10 +98,15 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 		}
 	}
 
+	/**
+	 * 资源是否可读
+	 * @return
+	 */
 	@Override
 	public boolean isReadable() {
 		try {
 			URL url = getURL();
+			//是文件 url 正常处理
 			if (ResourceUtils.isFileURL(url)) {
 				// Proceed with file system resolution
 				File file = getFile();
@@ -101,11 +119,13 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 				if (con instanceof HttpURLConnection) {
 					HttpURLConnection httpCon = (HttpURLConnection) con;
 					int code = httpCon.getResponseCode();
+					//不是 200 代表 资源不可访问就是不可读
 					if (code != HttpURLConnection.HTTP_OK) {
 						httpCon.disconnect();
 						return false;
 					}
 				}
+				//获取文件长度
 				long contentLength = con.getContentLengthLong();
 				if (contentLength > 0) {
 					return true;
@@ -133,6 +153,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 			if (url.getProtocol().startsWith(ResourceUtils.URL_PROTOCOL_VFS)) {
 				return VfsResourceDelegate.getResource(url).isFile();
 			}
+			//判断是否是 文件协议对象
 			return ResourceUtils.URL_PROTOCOL_FILE.equals(url.getProtocol());
 		}
 		catch (IOException ex) {
@@ -148,6 +169,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	@Override
 	public File getFile() throws IOException {
 		URL url = getURL();
+		//如果 是 vfs 协议 就返回 特殊的 file
 		if (url.getProtocol().startsWith(ResourceUtils.URL_PROTOCOL_VFS)) {
 			return VfsResourceDelegate.getResource(url).getFile();
 		}
@@ -157,6 +179,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	/**
 	 * This implementation determines the underlying File
 	 * (or jar file, in case of a resource in a jar/zip).
+	 * 获取文件最后修改时间
 	 */
 	@Override
 	protected File getFileForLastModifiedCheck() throws IOException {
@@ -213,6 +236,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	public ReadableByteChannel readableChannel() throws IOException {
 		try {
 			// Try file system channel
+			// 使用java.nio 实现
 			return FileChannel.open(getFile().toPath(), StandardOpenOption.READ);
 		}
 		catch (FileNotFoundException | NoSuchFileException ex) {
@@ -221,6 +245,11 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 		}
 	}
 
+	/**
+	 * 获取 内容长度
+	 * @return
+	 * @throws IOException
+	 */
 	@Override
 	public long contentLength() throws IOException {
 		URL url = getURL();
@@ -279,9 +308,13 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	 * Can be overridden in subclasses.
 	 * @param con the URLConnection to customize
 	 * @throws IOException if thrown from URLConnection methods
+	 *
+	 * 传入资源连接对象
 	 */
 	protected void customizeConnection(URLConnection con) throws IOException {
+		//设置 是否需要使用缓存
 		ResourceUtils.useCachesIfNecessary(con);
+		//如果 资源是 HTTP 资源对象
 		if (con instanceof HttpURLConnection) {
 			customizeConnection((HttpURLConnection) con);
 		}
@@ -295,12 +328,15 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	 * @throws IOException if thrown from HttpURLConnection methods
 	 */
 	protected void customizeConnection(HttpURLConnection con) throws IOException {
+		//如果是 Http url 连接对象 设置 requestMethod 为 HEAD
 		con.setRequestMethod("HEAD");
 	}
 
 
 	/**
 	 * Inner delegate class, avoiding a hard JBoss VFS API dependency at runtime.
+	 *
+	 * vsf 资源解析对象
 	 */
 	private static class VfsResourceDelegate {
 

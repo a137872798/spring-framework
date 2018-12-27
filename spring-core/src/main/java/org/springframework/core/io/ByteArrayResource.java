@@ -39,11 +39,19 @@ import org.springframework.util.Assert;
  * @see java.io.ByteArrayInputStream
  * @see InputStreamResource
  * @see org.springframework.mail.javamail.MimeMessageHelper#addAttachment(String, InputStreamSource)
+ *
+ * 依据 byte数组对象 作为 资源对象  这里的 重写方法 基本就是针对 byteArray 数组做处理
  */
 public class ByteArrayResource extends AbstractResource {
 
+	/**
+	 * 内容实体对象
+	 */
 	private final byte[] byteArray;
 
+	/**
+	 * 描述信息
+	 */
 	private final String description;
 
 

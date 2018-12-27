@@ -35,6 +35,8 @@ import org.springframework.util.Assert;
  * @since 2.0
  * @see BeansDtdResolver
  * @see PluggableSchemaResolver
+ *
+ * 实现了 实体解析器的 接口 通过 将这个对象设置到 xml解析工厂影响解析过程
  */
 public class DelegatingEntityResolver implements EntityResolver {
 
@@ -45,8 +47,14 @@ public class DelegatingEntityResolver implements EntityResolver {
 	public static final String XSD_SUFFIX = ".xsd";
 
 
+	/**
+	 * 应该是 org.xml 原生的 解析器
+	 */
 	private final EntityResolver dtdResolver;
 
+	/**
+	 * 应该是 org.xml 原生的 解析器
+	 */
 	private final EntityResolver schemaResolver;
 
 

@@ -81,6 +81,8 @@ import org.springframework.util.xml.DomUtils;
  * @since 2.0
  * @see ParserContext
  * @see DefaultBeanDefinitionDocumentReader
+ *
+ * 解析代理对象 内部 维护了 读取的 上下文对象
  */
 public class BeanDefinitionParserDelegate {
 
@@ -227,16 +229,27 @@ public class BeanDefinitionParserDelegate {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 读取的 上下文对象
+	 */
 	private final XmlReaderContext readerContext;
 
+	/**
+	 * bean 的一些 额外属性的封装 比如 autoWire initMethod
+	 */
 	private final DocumentDefaultsDefinition defaults = new DocumentDefaultsDefinition();
 
+	/**
+	 * 维护解析的 状态 内部维护一个链表
+	 */
 	private final ParseState parseState = new ParseState();
 
 	/**
 	 * Stores all used bean names so we can enforce uniqueness on a per
 	 * beans-element basis. Duplicate bean ids/names may not exist within the
 	 * same level of beans element nesting, but may be duplicated across levels.
+	 *
+	 * 该对象 保存 所有 已经使用过的 beanName 这样保证新创建的对象有唯一的 beanName
 	 */
 	private final Set<String> usedNames = new HashSet<>();
 
@@ -244,6 +257,8 @@ public class BeanDefinitionParserDelegate {
 	/**
 	 * Create a new BeanDefinitionParserDelegate associated with the supplied
 	 * {@link XmlReaderContext}.
+	 *
+	 * 通过传入的上下文对象进行初始化
 	 */
 	public BeanDefinitionParserDelegate(XmlReaderContext readerContext) {
 		Assert.notNull(readerContext, "XmlReaderContext must not be null");
@@ -253,6 +268,7 @@ public class BeanDefinitionParserDelegate {
 
 	/**
 	 * Get the {@link XmlReaderContext} associated with this helper instance.
+	 * 获取 xmlReader 上下文对象
 	 */
 	public final XmlReaderContext getReaderContext() {
 		return this.readerContext;
@@ -303,11 +319,16 @@ public class BeanDefinitionParserDelegate {
 	 * defaults are not explicitly set locally.
 	 * @see #populateDefaults(DocumentDefaultsDefinition, DocumentDefaultsDefinition, org.w3c.dom.Element)
 	 * @see #getDefaults()
+	 *
+	 * root 是 xml 的 根元素  parent 是 BeanDefinitionParserDelegate内部维护的 默认 delegate 每次解析的时候都会生成
+	 * 一个新的 BeanDefinitionParserDelegate 对象
 	 */
 	public void initDefaults(Element root, @Nullable BeanDefinitionParserDelegate parent) {
 		populateDefaults(this.defaults, (parent != null ? parent.defaults : null), root);
+		//触发 完成注册的 逻辑  传入的是生成的 default 对象
+		//触发监听器 的 register方法  这个注册是指 默认的bean 属性被设置??? 因为这里还没有解析xml 以及 设置到registry中
 		this.readerContext.fireDefaultsRegistered(this.defaults);
-	}
+}
 
 	/**
 	 * Populate the given DocumentDefaultsDefinition instance with the default lazy-init,
@@ -317,15 +338,21 @@ public class BeanDefinitionParserDelegate {
 	 * @param defaults the defaults to populate
 	 * @param parentDefaults the parent BeanDefinitionParserDelegate (if any) defaults to fall back to
 	 * @param root the root element of the current bean definition document (or nested beans element)
+	 *
+	 *             defaults 代表bean 的 默认属性 parentDefaults 代表父对象的 默认属性 root 代表xml 根元素
 	 */
 	protected void populateDefaults(DocumentDefaultsDefinition defaults, @Nullable DocumentDefaultsDefinition parentDefaults, Element root) {
+		//获取 lazyinit 属性
 		String lazyInit = root.getAttribute(DEFAULT_LAZY_INIT_ATTRIBUTE);
 		if (DEFAULT_VALUE.equals(lazyInit)) {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to false.
+			// 尝试从parent 中获取属性没有的情况 就设置为false
 			lazyInit = (parentDefaults != null ? parentDefaults.getLazyInit() : FALSE_VALUE);
 		}
+		//为当前 default 设置 lazyInit
 		defaults.setLazyInit(lazyInit);
 
+		//获取merge 属性 默认也是 false
 		String merge = root.getAttribute(DEFAULT_MERGE_ATTRIBUTE);
 		if (DEFAULT_VALUE.equals(merge)) {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to false.
@@ -333,6 +360,7 @@ public class BeanDefinitionParserDelegate {
 		}
 		defaults.setMerge(merge);
 
+		//自动注册
 		String autowire = root.getAttribute(DEFAULT_AUTOWIRE_ATTRIBUTE);
 		if (DEFAULT_VALUE.equals(autowire)) {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to 'no'.
@@ -340,6 +368,7 @@ public class BeanDefinitionParserDelegate {
 		}
 		defaults.setAutowire(autowire);
 
+		//如果 root 中包含 autoWire-candidate 设置
 		if (root.hasAttribute(DEFAULT_AUTOWIRE_CANDIDATES_ATTRIBUTE)) {
 			defaults.setAutowireCandidates(root.getAttribute(DEFAULT_AUTOWIRE_CANDIDATES_ATTRIBUTE));
 		}
@@ -347,6 +376,7 @@ public class BeanDefinitionParserDelegate {
 			defaults.setAutowireCandidates(parentDefaults.getAutowireCandidates());
 		}
 
+		//默认的初始化方法 存在就设置
 		if (root.hasAttribute(DEFAULT_INIT_METHOD_ATTRIBUTE)) {
 			defaults.setInitMethod(root.getAttribute(DEFAULT_INIT_METHOD_ATTRIBUTE));
 		}
@@ -354,6 +384,7 @@ public class BeanDefinitionParserDelegate {
 			defaults.setInitMethod(parentDefaults.getInitMethod());
 		}
 
+		//destory方法 存在就设置
 		if (root.hasAttribute(DEFAULT_DESTROY_METHOD_ATTRIBUTE)) {
 			defaults.setDestroyMethod(root.getAttribute(DEFAULT_DESTROY_METHOD_ATTRIBUTE));
 		}
@@ -361,6 +392,7 @@ public class BeanDefinitionParserDelegate {
 			defaults.setDestroyMethod(parentDefaults.getDestroyMethod());
 		}
 
+		//源对象 委托给 extractSource 一般默认返回null
 		defaults.setSource(this.readerContext.extractSource(root));
 	}
 

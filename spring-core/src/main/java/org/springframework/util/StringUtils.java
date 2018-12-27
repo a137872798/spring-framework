@@ -613,6 +613,7 @@ public abstract class StringUtils {
 	public static String applyRelativePath(String path, String relativePath) {
 		int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
 		if (separatorIndex != -1) {
+			//截取 最后一个 / 对应的路径 拼接 上 也就是创建同级文件对象
 			String newPath = path.substring(0, separatorIndex);
 			if (!relativePath.startsWith(FOLDER_SEPARATOR)) {
 				newPath += FOLDER_SEPARATOR;
@@ -633,9 +634,11 @@ public abstract class StringUtils {
 	 * @return the normalized path
 	 */
 	public static String cleanPath(String path) {
+		//这里 就是 空值校验
 		if (!hasLength(path)) {
 			return path;
 		}
+		//将 \\ 替换成/
 		String pathToUse = replace(path, WINDOWS_FOLDER_SEPARATOR, FOLDER_SEPARATOR);
 
 		// Strip prefix from path to analyze, to not treat it as part of the
@@ -645,11 +648,13 @@ public abstract class StringUtils {
 		int prefixIndex = pathToUse.indexOf(':');
 		String prefix = "";
 		if (prefixIndex != -1) {
+			//截取 路径前缀
 			prefix = pathToUse.substring(0, prefixIndex + 1);
 			if (prefix.contains(FOLDER_SEPARATOR)) {
 				prefix = "";
 			}
 			else {
+				//截取后面部分
 				pathToUse = pathToUse.substring(prefixIndex + 1);
 			}
 		}

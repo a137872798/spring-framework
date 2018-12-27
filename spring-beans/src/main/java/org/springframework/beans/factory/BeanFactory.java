@@ -112,6 +112,8 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.config.BeanPostProcessor#postProcessAfterInitialization
  * @see DisposableBean#destroy
  * @see org.springframework.beans.factory.support.RootBeanDefinition#getDestroyMethodName
+ *
+ * bean 工厂对象  根据给定的 BeanDefinition 对象 生成合适的 bean
  */
 public interface BeanFactory {
 

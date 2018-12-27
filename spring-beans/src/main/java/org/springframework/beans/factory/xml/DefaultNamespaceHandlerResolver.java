@@ -46,6 +46,8 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  * @see NamespaceHandler
  * @see DefaultBeanDefinitionDocumentReader
+ *
+ * 校验 命名空间的 对象
  */
 public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver {
 

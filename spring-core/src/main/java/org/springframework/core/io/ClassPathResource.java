@@ -40,14 +40,25 @@ import org.springframework.util.StringUtils;
  * @since 28.12.2003
  * @see ClassLoader#getResourceAsStream(String)
  * @see Class#getResourceAsStream(String)
+ *
+ * 通过 classPath 加载类路径  这里 只是一个 资源符 没有包含解析的功能 解析需要配合ResourceLoader
  */
 public class ClassPathResource extends AbstractFileResolvingResource {
 
+	/**
+	 * 类路径
+	 */
 	private final String path;
 
+	/**
+	 * 特定的类加载器对象
+	 */
 	@Nullable
 	private ClassLoader classLoader;
 
+	/**
+	 * 目标类对象
+	 */
 	@Nullable
 	private Class<?> clazz;
 
@@ -61,6 +72,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 * @param path the absolute path within the class path
 	 * @see java.lang.ClassLoader#getResourceAsStream(String)
 	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
+	 *
 	 */
 	public ClassPathResource(String path) {
 		this(path, (ClassLoader) null);
@@ -82,6 +94,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 			pathToUse = pathToUse.substring(1);
 		}
 		this.path = pathToUse;
+		//不存在 类加载器 就获取默认的 由下往上 获取 加载器对象
 		this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
 	}
 
@@ -149,6 +162,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	@Nullable
 	protected URL resolveURL() {
 		if (this.clazz != null) {
+			//这里this.path 是 设置资源名
 			return this.clazz.getResource(this.path);
 		}
 		else if (this.classLoader != null) {
@@ -205,6 +219,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	@Override
 	public Resource createRelative(String relativePath) {
 		String pathToUse = StringUtils.applyRelativePath(this.path, relativePath);
+		//在另一个 路径生成相同的资源对象
 		return (this.clazz != null ? new ClassPathResource(pathToUse, this.clazz) :
 				new ClassPathResource(pathToUse, this.classLoader));
 	}
@@ -227,6 +242,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	public String getDescription() {
 		StringBuilder builder = new StringBuilder("class path resource [");
 		String pathToUse = this.path;
+		//生成 class资源 信息 也就是 全限定名 稍加修改
 		if (this.clazz != null && !pathToUse.startsWith("/")) {
 			builder.append(ClassUtils.classPackageAsResourcePath(this.clazz));
 			builder.append('/');

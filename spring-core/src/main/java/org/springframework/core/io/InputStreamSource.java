@@ -37,6 +37,8 @@ import java.io.InputStream;
  * @see Resource
  * @see InputStreamResource
  * @see ByteArrayResource
+ *
+ * spring 的 资源顶级接口
  */
 public interface InputStreamSource {
 

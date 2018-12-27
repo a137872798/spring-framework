@@ -27,6 +27,8 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  * @see Class#getResource(String)
  * @see ClassPathResource#ClassPathResource(String, Class)
+ *
+ * 当父类的 资源加载 以 \开头时 直接返回 ClassRelativeContextResource 这个类现在还看不出意义 只能说使得父类的 分级更加准确了
  */
 public class ClassRelativeResourceLoader extends DefaultResourceLoader {
 

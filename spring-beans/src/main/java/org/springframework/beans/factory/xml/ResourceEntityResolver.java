@@ -50,11 +50,16 @@ import org.springframework.lang.Nullable;
  * @since 31.07.2003
  * @see org.springframework.core.io.ResourceLoader
  * @see org.springframework.context.ApplicationContext
+ *
+ * 如果存在 给定的 ResourceLoader 就会使用这个对象 来 生成 解析器对象 这个对象是要设置到 javax.xml的工厂类下的
  */
 public class ResourceEntityResolver extends DelegatingEntityResolver {
 
 	private static final Log logger = LogFactory.getLog(ResourceEntityResolver.class);
 
+	/**
+	 * 关联的  资源解析对象
+	 */
 	private final ResourceLoader resourceLoader;
 
 

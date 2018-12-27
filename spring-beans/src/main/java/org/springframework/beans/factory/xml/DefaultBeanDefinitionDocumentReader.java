@@ -55,6 +55,8 @@ import org.springframework.util.StringUtils;
  * @author Rob Harrop
  * @author Erik Wiersma
  * @since 18.12.2003
+ *
+ * 可以将 document 解析成 beanDefinition 对象
  */
 public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocumentReader {
 
@@ -77,9 +79,15 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 包含资源的 上下文对象 里面还有监听器
+	 */
 	@Nullable
 	private XmlReaderContext readerContext;
 
+	/**
+	 * 该对象内部有 一个 default 对象 维护了一个bean 对象的 默认属性
+	 */
 	@Nullable
 	private BeanDefinitionParserDelegate delegate;
 
@@ -93,6 +101,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
+		//解析的 实际逻辑
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -116,6 +125,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 	/**
 	 * Register each bean definition within the given root {@code <beans/>} element.
+	 * 解析xml 对象 并将 beanDefinition 注册到 工厂
 	 */
 	@SuppressWarnings("deprecation")  // for Environment.acceptsProfiles(String...)
 	protected void doRegisterBeanDefinitions(Element root) {
@@ -125,10 +135,15 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+
+		//获取 解析代理对象
 		BeanDefinitionParserDelegate parent = this.delegate;
+		//创建一个 新的 代理对象并将之前的 作为 父对象
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
+		//该节点不存在 namespace 或者 是 http://www.springframework.org/schema/beans 代表是 属于默认命名空间
 		if (this.delegate.isDefaultNamespace(root)) {
+			//获取 profile 属性
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
@@ -152,10 +167,18 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		this.delegate = parent;
 	}
 
+	/**
+	 * 创建新的 代理对象 通过给定的 context
+	 * @param readerContext
+	 * @param root
+	 * @param parentDelegate
+	 * @return
+	 */
 	protected BeanDefinitionParserDelegate createDelegate(
 			XmlReaderContext readerContext, Element root, @Nullable BeanDefinitionParserDelegate parentDelegate) {
 
 		BeanDefinitionParserDelegate delegate = new BeanDefinitionParserDelegate(readerContext);
+		//通过给定的 父 Delegate 进行初始化 也就是将 parent.defaults 的 属性取出来 保存到新的 defaults中 并返回
 		delegate.initDefaults(root, parentDelegate);
 		return delegate;
 	}

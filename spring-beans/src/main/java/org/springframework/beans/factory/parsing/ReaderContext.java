@@ -26,15 +26,29 @@ import org.springframework.lang.Nullable;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * 读取资源时的上下文对象  基本就是一个 整合了 内部属性方法的对象 每个方法 委托给对应的对象
  */
 public class ReaderContext {
 
+	/**
+	 * 资源对象
+	 */
 	private final Resource resource;
 
+	/**
+	 * 出现问题时 的 报告者
+	 */
 	private final ProblemReporter problemReporter;
 
+	/**
+	 * 监听器对象
+	 */
 	private final ReaderEventListener eventListener;
 
+	/**
+	 * 资源抽离器  能够将资源抽成一个对象
+	 */
 	private final SourceExtractor sourceExtractor;
 
 
