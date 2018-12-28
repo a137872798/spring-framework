@@ -26,6 +26,9 @@ import org.springframework.util.StringUtils;
  */
 public class PropertyEntry implements ParseState.Entry {
 
+	/**
+	 * 属性 名称
+	 */
 	private final String name;
 
 

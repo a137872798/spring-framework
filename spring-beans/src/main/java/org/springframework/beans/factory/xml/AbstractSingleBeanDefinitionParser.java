@@ -44,6 +44,8 @@ import org.springframework.lang.Nullable;
  * @see #getBeanClass
  * @see #getBeanClassName
  * @see #doParse
+ *
+ * 用户一般是拓展这个 parse 对象 完成 自定义标签的加载的  一般实现的是 doParse方法
  */
 public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDefinitionParser {
 
@@ -60,16 +62,20 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 	 */
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		//创建一个 BeanDefinitionBuilder 对象
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+		//子类可以覆盖这个方法 一般是 返回null
 		String parentName = getParentName(element);
 		if (parentName != null) {
 			builder.getRawBeanDefinition().setParentName(parentName);
 		}
+		//一般子类要覆写这个方法 设置 标签对应的实体类对象
 		Class<?> beanClass = getBeanClass(element);
 		if (beanClass != null) {
 			builder.getRawBeanDefinition().setBeanClass(beanClass);
 		}
 		else {
+			//同样需要子类 覆写
 			String beanClassName = getBeanClassName(element);
 			if (beanClassName != null) {
 				builder.getRawBeanDefinition().setBeanClassName(beanClassName);
@@ -79,12 +85,14 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 		BeanDefinition containingBd = parserContext.getContainingBeanDefinition();
 		if (containingBd != null) {
 			// Inner bean definition must receive same scope as containing bean.
+			// 如果存在 外部类 那么 内部bean 的 范围跟外部类 保持一致
 			builder.setScope(containingBd.getScope());
 		}
 		if (parserContext.isDefaultLazyInit()) {
 			// Default-lazy-init applies to custom bean definitions as well.
 			builder.setLazyInit(true);
 		}
+		//由用户实现 一般就是调用 builder.addPropertyValue("id", id); 配合 element.getAttribute("id"); 手动解析
 		doParse(element, parserContext, builder);
 		return builder.getBeanDefinition();
 	}

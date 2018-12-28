@@ -33,6 +33,8 @@ import org.springframework.util.ObjectUtils;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * 构建BeanDefinition 的对象  基本方法都是委托给内部的BeanDefinition 实现
  */
 public final class BeanDefinitionBuilder {
 

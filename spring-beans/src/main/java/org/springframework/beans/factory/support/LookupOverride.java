@@ -30,12 +30,20 @@ import org.springframework.util.ObjectUtils;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @since 1.1
+ *
+ * 代表被覆写方法的 抽象
  */
 public class LookupOverride extends MethodOverride {
 
+	/**
+	 * 该方法 引入的 bean 对象
+	 */
 	@Nullable
 	private final String beanName;
 
+	/**
+	 * 方法名
+	 */
 	@Nullable
 	private Method method;
 

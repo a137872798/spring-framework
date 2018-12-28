@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Rick Evans
  * @author Dave Syer
  * @since 2.0
+ *
  */
 public abstract class AbstractBeanDefinitionParser implements BeanDefinitionParser {
 
@@ -57,12 +58,24 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	public static final String NAME_ATTRIBUTE = "name";
 
 
+	/**
+	 * 解析自定义 标签的骨架实现
+	 * @param element the element that is to be parsed into one or more {@link BeanDefinition BeanDefinitions}
+	 * @param parserContext the object encapsulating the current state of the parsing process;
+	 * provides access to a {@link org.springframework.beans.factory.support.BeanDefinitionRegistry}
+	 * @return
+	 *
+	 * element 保存了 document 的 根元素
+	 * parserContext 解析的上下文对象
+	 */
 	@Override
 	@Nullable
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+		//这里 已经解析了 用户自定义的属性 并生成了 Bd对象 用户一般就是 覆写doParse 将 xml的属性读出来直接 set到bd中
 		AbstractBeanDefinition definition = parseInternal(element, parserContext);
 		if (definition != null && !parserContext.isNested()) {
 			try {
+				//解析id 属性
 				String id = resolveId(element, definition, parserContext);
 				if (!StringUtils.hasText(id)) {
 					parserContext.getReaderContext().error(
@@ -76,9 +89,12 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 						aliases = StringUtils.trimArrayElements(StringUtils.commaDelimitedListToStringArray(name));
 					}
 				}
+				//生成 id 和别名并保存到 BeanDefinitionHolder 上
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, id, aliases);
+				//注册该bd
 				registerBeanDefinition(holder, parserContext.getRegistry());
 				if (shouldFireEvents()) {
+					//触发监听器
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);
 					parserContext.registerComponent(componentDefinition);

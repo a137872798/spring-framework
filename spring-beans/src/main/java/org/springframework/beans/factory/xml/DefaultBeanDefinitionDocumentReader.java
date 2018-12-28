@@ -211,7 +211,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 						//如 <bean id="studentService" class="org.springframework.core.StudentService" />
 						parseDefaultElement(ele, delegate);
 					}
-					//用户自定义解析
+					//用户自定义解析 或者 <dubbo></dubbo>
 					else {
 						//如 <tx:annotation-driven>
 						delegate.parseCustomElement(ele);
@@ -371,10 +371,10 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * 将生成的 beanDefinition 注册到 容器中
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
-		//解析成功 返回  holder 对象 否则  返回null
+		//解析成功 返回  holder 对象 否则  返回null 这里解析的是默认的 bean 标签
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
-			//进行自定义标签处理
+			//进行自定义标签处理 这里就是寻找 是否是非默认的命名空间
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.

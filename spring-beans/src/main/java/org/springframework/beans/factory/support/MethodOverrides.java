@@ -34,6 +34,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 1.1
  * @see MethodOverride
+ *
+ * 保留了一系列需要被覆写的方法
  */
 public class MethodOverrides {
 

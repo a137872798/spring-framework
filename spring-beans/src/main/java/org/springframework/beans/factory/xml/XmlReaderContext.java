@@ -50,7 +50,7 @@ public class XmlReaderContext extends ReaderContext {
 	private final XmlBeanDefinitionReader reader;
 
 	/**
-	 * 命名空间 检测对象
+	 * 命名空间 解析对象 解析后 可以 知道哪些 标签是 合法的
 	 */
 	private final NamespaceHandlerResolver namespaceHandlerResolver;
 

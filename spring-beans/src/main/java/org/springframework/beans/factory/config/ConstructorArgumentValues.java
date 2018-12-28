@@ -40,6 +40,8 @@ import org.springframework.util.ObjectUtils;
  * @author Juergen Hoeller
  * @since 09.11.2003
  * @see BeanDefinition#getConstructorArgumentValues
+ *
+ * 维护了 一些 构造对象参数
  */
 public class ConstructorArgumentValues {
 
@@ -432,6 +434,8 @@ public class ConstructorArgumentValues {
 	/**
 	 * Holder for a constructor argument value, with an optional type
 	 * attribute indicating the target type of the actual constructor argument.
+	 *
+	 * 维护了 bean 中 value 的定义
 	 */
 	public static class ValueHolder implements BeanMetadataElement {
 

@@ -41,6 +41,8 @@ import org.springframework.lang.Nullable;
  * @since 2.0
  * @see #registerBeanDefinitionParser(String, BeanDefinitionParser)
  * @see #registerBeanDefinitionDecorator(String, BeanDefinitionDecorator)
+ *
+ * 默认实现了 parse 方法 这样使得 自定义标签 只需要 继承这个类 并在 init 方法中将 对应解析对象注册到这里就可以 parse 会自动找到合适的parse对象 再委托解析
  */
 public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 
@@ -66,6 +68,8 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	/**
 	 * Parses the supplied {@link Element} by delegating to the {@link BeanDefinitionParser} that is
 	 * registered for that {@link Element}.
+	 *
+	 * 通过这个方法 完成 对 自定义标签的 解析
 	 */
 	@Override
 	@Nullable
@@ -80,12 +84,16 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		//对应到用户自定义 xsd 文件的 name
 		String localName = parserContext.getDelegate().getLocalName(element);
+		//从容器中找到对应的 parser对象
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
+			//不存在解析对象 抛出异常
 			parserContext.getReaderContext().fatal(
 					"Cannot locate BeanDefinitionParser for element [" + localName + "]", element);
 		}
+		//一般用户自定义的 parse 对象是 继承了 AbstractBeanDefinitionParser 这个类已经具备解析xml的 基本功能 用户要做的就是 设置自定义特殊标签到里面
 		return parser;
 	}
 
@@ -133,6 +141,8 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionParser} to
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
+	 *
+	 * 一般子类实现 通过在init 中将 解析对象 注册到这个容器中 之后调用parse 就会找到对应的parse对象进行解析
 	 */
 	protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
 		this.parsers.put(elementName, parser);

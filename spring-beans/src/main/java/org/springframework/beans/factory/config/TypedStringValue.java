@@ -34,9 +34,14 @@ import org.springframework.util.ObjectUtils;
  * @since 1.2
  * @see BeanDefinition#getPropertyValues
  * @see org.springframework.beans.MutablePropertyValues#addPropertyValue
+ *
+ * 保存了对bean 对象 注入属性的 职能
  */
 public class TypedStringValue implements BeanMetadataElement {
 
+	/**
+	 * 设置的 数值是  String 类型的  如果需要 int 可能要在 哪一步做转化
+	 */
 	@Nullable
 	private String value;
 

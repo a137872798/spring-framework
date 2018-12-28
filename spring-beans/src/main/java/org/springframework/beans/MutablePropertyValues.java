@@ -40,10 +40,15 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @since 13 May 2001
+ *
+ * 代表一个 属性的 集合
  */
 @SuppressWarnings("serial")
 public class MutablePropertyValues implements PropertyValues, Serializable {
 
+	/**
+	 * 代表属性的集合
+	 */
 	private final List<PropertyValue> propertyValueList;
 
 	@Nullable
@@ -56,6 +61,8 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * Creates a new empty MutablePropertyValues object.
 	 * <p>Property values can be added with the {@code add} method.
 	 * @see #add(String, Object)
+	 *
+	 * 初始化时 创建一个空的列表
 	 */
 	public MutablePropertyValues() {
 		this.propertyValueList = new ArrayList<>(0);
@@ -67,6 +74,8 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * referenced by individual PropertyValue objects.
 	 * @param original the PropertyValues to copy
 	 * @see #addPropertyValues(PropertyValues)
+	 *
+	 * 通过深拷贝的 方式 保证不会影响到原对象
 	 */
 	public MutablePropertyValues(@Nullable PropertyValues original) {
 		// We can optimize this because it's all new:

@@ -33,6 +33,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 13 May 2001
  * @see PropertyValue
+ *
+ * 属性集合接口
  */
 public interface PropertyValues extends Iterable<PropertyValue> {
 

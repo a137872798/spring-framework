@@ -45,6 +45,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Scope identifier for the standard singleton scope: "singleton".
 	 * <p>Note that extended bean factories might support further scopes.
 	 * @see #setScope
+	 *
+	 * 代表该bean 对象以 单例模式创建
 	 */
 	String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
 
@@ -52,6 +54,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Scope identifier for the standard prototype scope: "prototype".
 	 * <p>Note that extended bean factories might support further scopes.
 	 * @see #setScope
+	 *
+	 * 代表该bean 对象以 原型模式创建
 	 */
 	String SCOPE_PROTOTYPE = ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
@@ -86,6 +90,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**
 	 * Set the name of the parent definition of this bean definition, if any.
+	 *
+	 * 该bean的 parent bean对象
 	 */
 	void setParentName(@Nullable String parentName);
 
@@ -102,6 +108,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #setParentName
 	 * @see #setFactoryBeanName
 	 * @see #setFactoryMethodName
+	 *
+	 * 设置bean 的 类名
 	 */
 	void setBeanClassName(@Nullable String beanClassName);
 
@@ -124,6 +132,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Override the target scope of this bean, specifying a new scope name.
 	 * @see #SCOPE_SINGLETON
 	 * @see #SCOPE_PROTOTYPE
+	 *
+	 * 设置该bean 对象的范围
 	 */
 	void setScope(@Nullable String scope);
 
@@ -138,6 +148,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Set whether this bean should be lazily initialized.
 	 * <p>If {@code false}, the bean will get instantiated on startup by bean
 	 * factories that perform eager initialization of singletons.
+	 *
+	 * 是否 惰性初始化
 	 */
 	void setLazyInit(boolean lazyInit);
 
@@ -150,6 +162,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the names of the beans that this bean depends on being initialized.
 	 * The bean factory will guarantee that these beans get initialized first.
+	 *
+	 * 设置该bean 的依赖对象
 	 */
 	void setDependsOn(@Nullable String... dependsOn);
 
@@ -165,6 +179,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * It does not affect explicit references by name, which will get resolved even
 	 * if the specified bean is not marked as an autowire candidate. As a consequence,
 	 * autowiring by name will nevertheless inject a bean if the name matches.
+	 *
+	 * 代表该bean 是否是 其他bean 需要注入的对象(某个对象的创建依赖于该对象的初始化)
 	 */
 	void setAutowireCandidate(boolean autowireCandidate);
 
@@ -177,6 +193,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Set whether this bean is a primary autowire candidate.
 	 * <p>If this value is {@code true} for exactly one bean among multiple
 	 * matching candidates, it will serve as a tie-breaker.
+	 *
+	 * 大概就是 优先级 高一些吧
 	 */
 	void setPrimary(boolean primary);
 
@@ -189,6 +207,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Specify the factory bean to use, if any.
 	 * This the name of the bean to call the specified factory method on.
 	 * @see #setFactoryMethodName
+	 *
+	 * 关联的 bean工厂名
 	 */
 	void setFactoryBeanName(@Nullable String factoryBeanName);
 
@@ -205,6 +225,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * or otherwise as a static method on the local bean class.
 	 * @see #setFactoryBeanName
 	 * @see #setBeanClassName
+	 *
+	 * 工厂方法名
 	 */
 	void setFactoryMethodName(@Nullable String factoryMethodName);
 
@@ -218,6 +240,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Return the constructor argument values for this bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the ConstructorArgumentValues object (never {@code null})
+	 *
+	 * 获取该bean 对象的 构造函数参数
 	 */
 	ConstructorArgumentValues getConstructorArgumentValues();
 
@@ -233,6 +257,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Return the property values to be applied to a new instance of the bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the MutablePropertyValues object (never {@code null})
+	 *
+	 * 获取属性值  返回的是一个属性集合
 	 */
 	MutablePropertyValues getPropertyValues();
 
@@ -247,6 +273,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the initializer method.
 	 * @since 5.1
+	 *
+	 * 设置初始化方法名
 	 */
 	void setInitMethodName(@Nullable String initMethodName);
 
@@ -260,6 +288,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the destroy method.
 	 * @since 5.1
+	 *
+	 * 设置销毁方法名
 	 */
 	void setDestroyMethodName(@Nullable String destroyMethodName);
 
@@ -278,6 +308,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * @see #ROLE_APPLICATION
 	 * @see #ROLE_SUPPORT
 	 * @see #ROLE_INFRASTRUCTURE
+	 *
+	 * 设置该bean 对象的角色
 	 */
 	void setRole(int role);
 
@@ -294,6 +326,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set a human-readable description of this bean definition.
 	 * @since 5.1
+	 *
+	 * 设置描述信息
 	 */
 	void setDescription(@Nullable String description);
 
@@ -323,6 +357,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**
 	 * Return whether this bean is "abstract", that is, not meant to be instantiated.
+	 *
+	 * 是否是 抽象类  代表着 这个bean 是不能被初始化的
 	 */
 	boolean isAbstract();
 
@@ -338,6 +374,8 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * Allows for retrieving the decorated bean definition, if any.
 	 * <p>Note that this method returns the immediate originator. Iterate through the
 	 * originator chain to find the original BeanDefinition as defined by the user.
+	 *
+	 * 尝试获取 原始的 BeanDefinition 信息
 	 */
 	@Nullable
 	BeanDefinition getOriginatingBeanDefinition();

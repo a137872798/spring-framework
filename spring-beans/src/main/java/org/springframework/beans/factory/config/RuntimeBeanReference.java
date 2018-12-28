@@ -27,9 +27,14 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @see BeanDefinition#getPropertyValues()
  * @see org.springframework.beans.factory.BeanFactory#getBean
+ *
+ * 在生成bean 对象时  动态 引入的 其他bean 对象
  */
 public class RuntimeBeanReference implements BeanReference {
 
+	/**
+	 * 引入的bean 对象的名字
+	 */
 	private final String beanName;
 
 	private final boolean toParent;

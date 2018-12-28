@@ -33,11 +33,19 @@ import org.springframework.util.ObjectUtils;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @since 1.1
+ *
+ * 代表 replace-method 标签对应的数据
  */
 public class ReplaceOverride extends MethodOverride {
 
+	/**
+	 * 被替换的 目标方法名
+	 */
 	private final String methodReplacerBeanName;
 
+	/**
+	 * 对应 arg-type 标签 还不太懂 是怎么用
+	 */
 	private List<String> typeIdentifiers = new LinkedList<>();
 
 

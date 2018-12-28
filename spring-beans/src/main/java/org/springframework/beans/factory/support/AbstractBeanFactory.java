@@ -169,7 +169,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/** Names of beans that have already been created at least once. */
 	private final Set<String> alreadyCreated = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
 
-	/** Names of beans that are currently in creation. */
+	/** Names of beans that are currently in creation.
+	 * 用来存放 正在 以原型模式实例化的 bean 对象*/
 	private final ThreadLocal<Object> prototypesCurrentlyInCreation =
 			new NamedThreadLocal<>("Prototype beans currently in creation");
 
@@ -194,8 +195,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	// Implementation of BeanFactory interface
 	//---------------------------------------------------------------------
 
+	/**
+	 * 这里就是 获取 bean 对象的 入口
+	 * @param name the name of the bean to retrieve
+	 * @return
+	 * @throws BeansException
+	 */
 	@Override
 	public Object getBean(String name) throws BeansException {
+		//通过 beanName 查找bean 对象
 		return doGetBean(name, null, null, false);
 	}
 
@@ -234,15 +242,19 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * not for actual use
 	 * @return an instance of the bean
 	 * @throws BeansException if the bean could not be created
+	 *
+	 * 通过给定的beanName 生成bean 对象的过程 如果未初始化bean 对象就创建 否则 直接返回缓存的 bean 对象
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
+		//将传入的名字转换成 BeanName 这里就是做一个去除& 以及 如果是别名就转换为beanName
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		// 从缓存 或者 新创建bean 实例对象
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -254,18 +266,23 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			//这里需要对实例化的 bean 做 一些额外处理才能返回实际想要的对象
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			// 这里代表没有从 缓存或 工厂中 取得 单例对象 就代表需要的是原型模式
+			// 如果正在创建中 这里代表着spring 是不处理 原型模式的循环依赖的 直接抛出异常
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
 			// Check if bean definition exists in this factory.
+			// 尝试从父容器中 找到 BeanFactory 对象
 			BeanFactory parentBeanFactory = getParentBeanFactory();
+			// 如果存在 父工厂 且 beanName 没有在本工厂生成BeanDefinition (应该是代表 这个BeanDefinition 在父工厂被创建了)
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
 				String nameToLookup = originalBeanName(name);
@@ -1130,6 +1147,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @return the transformed bean name
 	 */
 	protected String transformedBeanName(String name) {
+		//将返回的 名称规范化
 		return canonicalName(BeanFactoryUtils.transformedBeanName(name));
 	}
 

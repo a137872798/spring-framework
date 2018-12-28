@@ -24,6 +24,8 @@ import org.springframework.lang.Nullable;
  *
  * @author Rob Harrop
  * @since 2.0
+ *
+ * 抽象了  bean 对象 关于 设置属性和 读取属性的 职能
  */
 public interface AttributeAccessor {
 

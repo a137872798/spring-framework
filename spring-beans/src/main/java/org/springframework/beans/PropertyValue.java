@@ -38,12 +38,20 @@ import org.springframework.util.ObjectUtils;
  * @since 13 May 2001
  * @see PropertyValues
  * @see BeanWrapper
+ *
+ * 代表bean 对象的一个 属性
  */
 @SuppressWarnings("serial")
 public class PropertyValue extends BeanMetadataAttributeAccessor implements Serializable {
 
+	/**
+	 * 属性名
+	 */
 	private final String name;
 
+	/**
+	 * 属性值
+	 */
 	@Nullable
 	private final Object value;
 

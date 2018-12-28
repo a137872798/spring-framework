@@ -25,15 +25,22 @@ import org.springframework.util.Assert;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * 对应 constructor-arg 标签的 构造函数参数信息
  */
 public class ConstructorArgumentEntry implements ParseState.Entry {
 
+	/**
+	 * 参数对应的下标
+	 */
 	private final int index;
 
 
 	/**
 	 * Creates a new instance of the {@link ConstructorArgumentEntry} class
 	 * representing a constructor argument with a (currently) unknown index.
+	 *
+	 * -1 应该是代表 该 构造函数参数不是以 下标标明 而是以name 标明
 	 */
 	public ConstructorArgumentEntry() {
 		this.index = -1;

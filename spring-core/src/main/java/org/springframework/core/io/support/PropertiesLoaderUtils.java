@@ -168,13 +168,17 @@ public abstract class PropertiesLoaderUtils {
 	 * (or {@code null} to use the default class loader)
 	 * @return the populated Properties instance
 	 * @throws IOException if loading failed
+	 *
+	 * 从指定路径加载源数据
 	 */
 	public static Properties loadAllProperties(String resourceName, @Nullable ClassLoader classLoader) throws IOException {
 		Assert.notNull(resourceName, "Resource name must not be null");
 		ClassLoader classLoaderToUse = classLoader;
 		if (classLoaderToUse == null) {
+			//不存在 类加载器的情况下使用默认的 类加载器
 			classLoaderToUse = ClassUtils.getDefaultClassLoader();
 		}
+		//使用类加载器 加载资源
 		Enumeration<URL> urls = (classLoaderToUse != null ? classLoaderToUse.getResources(resourceName) :
 				ClassLoader.getSystemResources(resourceName));
 		Properties props = new Properties();

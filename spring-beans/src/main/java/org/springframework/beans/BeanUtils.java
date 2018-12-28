@@ -112,6 +112,8 @@ public abstract class BeanUtils {
 	 * (e.g. due to a missing dependency at runtime), or an exception thrown
 	 * from the constructor invocation itself.
 	 * @see Constructor#newInstance
+	 *
+	 * 通过class 创建实例对象
 	 */
 	public static <T> T instantiateClass(Class<T> clazz) throws BeanInstantiationException {
 		Assert.notNull(clazz, "Class must not be null");
