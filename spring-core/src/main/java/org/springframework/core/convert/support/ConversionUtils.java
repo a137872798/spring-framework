@@ -32,6 +32,14 @@ import org.springframework.util.Assert;
  */
 abstract class ConversionUtils {
 
+	/**
+	 * 将传入类型通过 converter对象转换成需要的类型对象
+	 * @param converter
+	 * @param source
+	 * @param sourceType
+	 * @param targetType
+	 * @return
+	 */
 	@Nullable
 	public static Object invokeConverter(GenericConverter converter, @Nullable Object source,
 			TypeDescriptor sourceType, TypeDescriptor targetType) {

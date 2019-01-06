@@ -44,6 +44,17 @@ public abstract class TypeConverterSupport extends PropertyEditorRegistrySupport
 		return doConvert(value, requiredType, null, null);
 	}
 
+	/**
+	 * 将传入参数 转化为合适的类型
+	 * @param value the value to convert
+	 * @param requiredType the type we must convert to
+	 * (or {@code null} if not known, for example in case of a collection element)
+	 * @param methodParam the method parameter that is the target of the conversion
+	 * (for analysis of generic types; may be {@code null})
+	 * @param <T>
+	 * @return
+	 * @throws TypeMismatchException
+	 */
 	@Override
 	@Nullable
 	public <T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType, @Nullable MethodParameter methodParam)
@@ -60,12 +71,23 @@ public abstract class TypeConverterSupport extends PropertyEditorRegistrySupport
 		return doConvert(value, requiredType, null, field);
 	}
 
+	/**
+	 * 转化参数类型的核心实现
+	 * @param value
+	 * @param requiredType
+	 * @param methodParam
+	 * @param field
+	 * @param <T>
+	 * @return
+	 * @throws TypeMismatchException
+	 */
 	@Nullable
 	private <T> T doConvert(@Nullable Object value,@Nullable Class<T> requiredType,
 			@Nullable MethodParameter methodParam, @Nullable Field field) throws TypeMismatchException {
 
 		Assert.state(this.typeConverterDelegate != null, "No TypeConverterDelegate");
 		try {
+			//这里都是委托给Delegate 实现
 			if (field != null) {
 				return this.typeConverterDelegate.convertIfNecessary(value, requiredType, field);
 			}

@@ -30,6 +30,8 @@ package org.springframework.beans.factory;
  * @see DisposableBean
  * @see org.springframework.beans.factory.config.BeanDefinition#getPropertyValues()
  * @see org.springframework.beans.factory.support.AbstractBeanDefinition#getInitMethodName()
+ *
+ * 			实现该接口的bean afterPropertiesSet 的触发时机 在aware 和 BeanPostProcessor 之后
  */
 public interface InitializingBean {
 

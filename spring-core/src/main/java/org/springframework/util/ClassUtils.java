@@ -886,6 +886,7 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
+		//如果是 CGLIB生成的 类对象 就返回父类对象
 		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null && superclass != Object.class) {
@@ -1185,6 +1186,8 @@ public abstract class ClassUtils {
 	 * @param clazz	the clazz to check
 	 * @param methodName the name of the method
 	 * @return the number of methods with the given name
+	 *
+	 * 			查看该方法 在父类或者接口中重写了几次
 	 */
 	public static int getMethodCountForName(Class<?> clazz, String methodName) {
 		Assert.notNull(clazz, "Class must not be null");

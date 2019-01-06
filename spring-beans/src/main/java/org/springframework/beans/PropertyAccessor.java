@@ -31,6 +31,8 @@ import org.springframework.lang.Nullable;
  * @see BeanWrapper
  * @see PropertyAccessorFactory#forBeanPropertyAccess
  * @see PropertyAccessorFactory#forDirectFieldAccess
+ *
+ * 		访问属性的基层接口
  */
 public interface PropertyAccessor {
 

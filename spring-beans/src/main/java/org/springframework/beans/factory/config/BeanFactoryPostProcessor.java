@@ -41,6 +41,8 @@ import org.springframework.beans.BeansException;
  * @since 06.07.2003
  * @see BeanPostProcessor
  * @see PropertyResourceConfigurer
+ *
+ * 				该对象是针对 解析并生成BeanDefinition 的过程 进行 额外处理的
  */
 @FunctionalInterface
 public interface BeanFactoryPostProcessor {

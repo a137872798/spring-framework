@@ -58,9 +58,12 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Ramnivas Laddad
  * @since 2.0
+ *
+ * 			针对AOP config 的解析对象
  */
 class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 
+	//这些是 aop 的子标签
 	private static final String ASPECT = "aspect";
 	private static final String EXPRESSION = "expression";
 	private static final String ID = "id";
@@ -101,12 +104,16 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		CompositeComponentDefinition compositeDef =
 				new CompositeComponentDefinition(element.getTagName(), parserContext.extractSource(element));
+		//为解析上下文对象添加一个 组件Definition
 		parserContext.pushContainingComponent(compositeDef);
 
+		//配置代理创建者  这里 最终就是将 一个 AspectJAwareAdvisorAutoProxyCreator 以beanName 为 internalProxyCreator 注册到工厂中 并设置到parseContext中
 		configureAutoProxyCreator(parserContext, element);
 
+		//获取<aop:config 下所有子标签>
 		List<Element> childElts = DomUtils.getChildElements(element);
 		for (Element elt: childElts) {
+			//本地名是什么???
 			String localName = parserContext.getDelegate().getLocalName(elt);
 			if (POINTCUT.equals(localName)) {
 				parsePointcut(elt, parserContext);
@@ -114,6 +121,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 			else if (ADVISOR.equals(localName)) {
 				parseAdvisor(elt, parserContext);
 			}
+			//解析aspect 节点
 			else if (ASPECT.equals(localName)) {
 				parseAspect(elt, parserContext);
 			}
@@ -128,6 +136,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 	 * created by the '{@code <aop:config/>}' tag. Will force class proxying if the
 	 * '{@code proxy-target-class}' attribute is set to '{@code true}'.
 	 * @see AopNamespaceUtils
+	 * 		注册 aspect代理对象
 	 */
 	private void configureAutoProxyCreator(ParserContext parserContext, Element element) {
 		AopNamespaceUtils.registerAspectJAutoProxyCreatorIfNecessary(parserContext, element);
@@ -195,29 +204,41 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 		return advisorDefinition;
 	}
 
+	/**
+	 * 解析aop 中的 aspect 节点
+	 * @param aspectElement
+	 * @param parserContext
+	 */
 	private void parseAspect(Element aspectElement, ParserContext parserContext) {
 		String aspectId = aspectElement.getAttribute(ID);
+		//代表 该切面是要使用那个 bean 进行 织入
 		String aspectName = aspectElement.getAttribute(REF);
 
 		try {
+			//将aspect 压入栈
 			this.parseState.push(new AspectEntry(aspectId, aspectName));
 			List<BeanDefinition> beanDefinitions = new ArrayList<>();
 			List<BeanReference> beanReferences = new ArrayList<>();
 
+			//尝试获取 declare-parent
 			List<Element> declareParents = DomUtils.getChildElementsByTagName(aspectElement, DECLARE_PARENTS);
 			for (int i = METHOD_INDEX; i < declareParents.size(); i++) {
 				Element declareParentsElement = declareParents.get(i);
+				//将解析后的 父声明 添加到beanDefinition中
 				beanDefinitions.add(parseDeclareParents(declareParentsElement, parserContext));
 			}
 
 			// We have to parse "advice" and all the advice kinds in one loop, to get the
 			// ordering semantics right.
+			// 继续获取 aspect 下的所有子标签
 			NodeList nodeList = aspectElement.getChildNodes();
 			boolean adviceFoundAlready = false;
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				Node node = nodeList.item(i);
+				//这个 advice 代表的 是 子节点是  before after after-running  after-throw around
 				if (isAdviceNode(node, parserContext)) {
 					if (!adviceFoundAlready) {
+						//设置代表找到了 advice
 						adviceFoundAlready = true;
 						if (!StringUtils.hasText(aspectName)) {
 							parserContext.getReaderContext().error(

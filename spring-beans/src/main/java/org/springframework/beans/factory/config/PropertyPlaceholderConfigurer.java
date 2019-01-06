@@ -61,6 +61,8 @@ import org.springframework.util.StringValueResolver;
  * @see PlaceholderConfigurerSupport
  * @see PropertyOverrideConfigurer
  * @see org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+ *
+ * 			属性占位符对象 实现了 BeanFactoryPostProcess  在生成 beanDefinition 和实例化之间做额外处理
  */
 public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport {
 
@@ -152,16 +154,21 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @see #setSystemPropertiesMode
 	 * @see System#getProperty
 	 * @see #resolvePlaceholder(String, java.util.Properties)
+	 *
+	 * 			大体实现应该就是将 占位符的 key 与prop对应起来 并返回
 	 */
 	@Nullable
 	protected String resolvePlaceholder(String placeholder, Properties props, int systemPropertiesMode) {
 		String propVal = null;
+		//如果是 系统属性 就从 系统属性解析
 		if (systemPropertiesMode == SYSTEM_PROPERTIES_MODE_OVERRIDE) {
 			propVal = resolveSystemProperty(placeholder);
 		}
 		if (propVal == null) {
+			//从配置文件中找
 			propVal = resolvePlaceholder(placeholder, props);
 		}
+		//这个应该代表 从配置文件中找不到 就回到系统变量中查找
 		if (propVal == null && systemPropertiesMode == SYSTEM_PROPERTIES_MODE_FALLBACK) {
 			propVal = resolveSystemProperty(placeholder);
 		}
@@ -180,6 +187,8 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @param props the merged properties of this configurer
 	 * @return the resolved value, of {@code null} if none
 	 * @see #setSystemPropertiesMode
+	 *
+	 * 			直接从prop.getProperty 就可以获取到 对应的 属性了
 	 */
 	@Nullable
 	protected String resolvePlaceholder(String placeholder, Properties props) {
@@ -194,12 +203,16 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @see #setSearchSystemEnvironment
 	 * @see System#getProperty(String)
 	 * @see System#getenv(String)
+	 *
+	 * 			从JVM 中解析参数
 	 */
 	@Nullable
 	protected String resolveSystemProperty(String key) {
 		try {
+			//获取系统变量
 			String value = System.getProperty(key);
 			if (value == null && this.searchSystemEnvironment) {
+				//从环境变量中找
 				value = System.getenv(key);
 			}
 			return value;
@@ -216,28 +229,44 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	/**
 	 * Visit each bean definition in the given bean factory and attempt to replace ${...} property
 	 * placeholders with values from the given properties.
+	 *
+	 * 			处理给定的属性
 	 */
 	@Override
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props)
 			throws BeansException {
 
+		//创建一个占位符解析对象
 		StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(props);
+		//解析属性
 		doProcessProperties(beanFactoryToProcess, valueResolver);
 	}
 
 
+	/**
+	 * 占位符解析对象
+	 */
 	private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
-
+		
 		private final PropertyPlaceholderHelper helper;
 
 		private final PlaceholderResolver resolver;
 
+		//使用给定的 properties 对象 进行初始化
 		public PlaceholderResolvingStringValueResolver(Properties props) {
+			//创建一个 帮助类  应该是 记录了 占位符固定的标识   分别对应  ${  }  :
 			this.helper = new PropertyPlaceholderHelper(
 					placeholderPrefix, placeholderSuffix, valueSeparator, ignoreUnresolvablePlaceholders);
+			//该对象维护了 传入的 prop
 			this.resolver = new PropertyPlaceholderConfigurerResolver(props);
 		}
 
+		/**
+		 * 将目标字符串 解析成 合适的对象
+		 * @param strVal the original String value (never {@code null})
+		 * @return
+		 * @throws BeansException
+		 */
 		@Override
 		@Nullable
 		public String resolveStringValue(String strVal) throws BeansException {
@@ -250,6 +279,9 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	}
 
 
+	/**
+	 * 实现解析配置文件占位符的 类
+	 */
 	private final class PropertyPlaceholderConfigurerResolver implements PlaceholderResolver {
 
 		private final Properties props;
@@ -258,10 +290,16 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 			this.props = props;
 		}
 
+		/**
+		 * 解析占位符 最后 会委托到这里实现
+		 * @param placeholderName the name of the placeholder to resolve
+		 * @return
+		 */
 		@Override
 		@Nullable
 		public String resolvePlaceholder(String placeholderName) {
 			return PropertyPlaceholderConfigurer.this.resolvePlaceholder(placeholderName,
+					//应该就是将 传入的  占位符名 对应到 这里的prop 的 属性名
 					this.props, systemPropertiesMode);
 		}
 	}

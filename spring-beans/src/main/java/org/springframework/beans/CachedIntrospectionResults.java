@@ -337,6 +337,11 @@ public final class CachedIntrospectionResults {
 		return this.beanInfo.getBeanDescriptor().getBeanClass();
 	}
 
+	/**
+	 * 根据属性名获取属性的描述信息
+	 * @param name
+	 * @return
+	 */
 	@Nullable
 	PropertyDescriptor getPropertyDescriptor(String name) {
 		PropertyDescriptor pd = this.propertyDescriptorCache.get(name);

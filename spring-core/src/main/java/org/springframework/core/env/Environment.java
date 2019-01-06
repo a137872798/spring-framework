@@ -67,6 +67,8 @@ package org.springframework.core.env;
  * @see org.springframework.context.ConfigurableApplicationContext#getEnvironment
  * @see org.springframework.context.ConfigurableApplicationContext#setEnvironment
  * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+ *
+ * 		代表当前程序所在的环境
  */
 public interface Environment extends PropertyResolver {
 
@@ -82,6 +84,8 @@ public interface Environment extends PropertyResolver {
 	 * @see #getDefaultProfiles
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 * @see AbstractEnvironment#ACTIVE_PROFILES_PROPERTY_NAME
+	 *
+	 * 		获取当前所有环境的切面
 	 */
 	String[] getActiveProfiles();
 

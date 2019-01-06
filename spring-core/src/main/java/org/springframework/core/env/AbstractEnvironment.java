@@ -51,6 +51,8 @@ import org.springframework.util.StringUtils;
  * @since 3.1
  * @see ConfigurableEnvironment
  * @see StandardEnvironment
+ *
+ * 			环境对象的骨架
  */
 public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
@@ -103,8 +105,14 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 处于激活状态的环境
+	 */
 	private final Set<String> activeProfiles = new LinkedHashSet<>();
 
+	/**
+	 * 默认环境
+	 */
 	private final Set<String> defaultProfiles = new LinkedHashSet<>(getReservedDefaultProfiles());
 
 	private final MutablePropertySources propertySources = new MutablePropertySources();
@@ -231,20 +239,27 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * property and assign its value to the set of active profiles.
 	 * @see #getActiveProfiles()
 	 * @see #ACTIVE_PROFILES_PROPERTY_NAME
+	 *
+	 * 		获取属于激活状态的 环境信息
 	 */
 	protected Set<String> doGetActiveProfiles() {
 		synchronized (this.activeProfiles) {
 			if (this.activeProfiles.isEmpty()) {
+				//这里会根据 分隔符 拆分  "," 或者 " "
 				String profiles = getProperty(ACTIVE_PROFILES_PROPERTY_NAME);
 				if (StringUtils.hasText(profiles)) {
 					setActiveProfiles(StringUtils.commaDelimitedListToStringArray(
 							StringUtils.trimAllWhitespace(profiles)));
 				}
-			}
+			}WebApplicationContext
 			return this.activeProfiles;
 		}
 	}
 
+	/**
+	 * 设置环境信息到 容器中
+	 * @param profiles
+	 */
 	@Override
 	public void setActiveProfiles(String... profiles) {
 		Assert.notNull(profiles, "Profile array must not be null");
@@ -252,6 +267,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 			logger.debug("Activating profiles " + Arrays.asList(profiles));
 		}
 		synchronized (this.activeProfiles) {
+			//先清空再设置
 			this.activeProfiles.clear();
 			for (String profile : profiles) {
 				validateProfile(profile);

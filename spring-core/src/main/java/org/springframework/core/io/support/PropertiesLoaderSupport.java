@@ -47,7 +47,7 @@ public abstract class PropertiesLoaderSupport {
 	protected Properties[] localProperties;
 
 	protected boolean localOverride = false;
-
+	PropertyOverrideConfigurer
 	@Nullable
 	private Resource[] locations;
 
@@ -142,15 +142,19 @@ public abstract class PropertiesLoaderSupport {
 	/**
 	 * Return a merged Properties instance containing both the
 	 * loaded properties and properties set on this FactoryBean.
+	 *
+	 * 			将工厂中获取的属性 与 从配置文件中加载的属性整合起来
 	 */
 	protected Properties mergeProperties() throws IOException {
 		Properties result = new Properties();
 
+		//根据这个标识 应该是判断 覆盖关系 如果先从文件中获取再整合本地属性 文件中的属性就会被覆盖
 		if (this.localOverride) {
 			// Load properties from file upfront, to let local properties override.
 			loadProperties(result);
 		}
 
+		//存在本地属性的情况 进行整合
 		if (this.localProperties != null) {
 			for (Properties localProp : this.localProperties) {
 				CollectionUtils.mergePropertiesIntoMap(localProp, result);
@@ -170,6 +174,8 @@ public abstract class PropertiesLoaderSupport {
 	 * @param props the Properties instance to load into
 	 * @throws IOException in case of I/O errors
 	 * @see #setLocations
+	 *
+	 * 		根据指定位置 加载资源 并将结果设置到传入的props中    在实际开发中可以通过 覆盖该方法 获取想要的 配置
 	 */
 	protected void loadProperties(Properties props) throws IOException {
 		if (this.locations != null) {

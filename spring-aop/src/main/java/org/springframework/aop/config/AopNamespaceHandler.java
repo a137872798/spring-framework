@@ -51,6 +51,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Adrian Colyer
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * 			AOP的 一切就是从这里开始 因为 <aop:config 是自定义标签 所以会触发这里></>
  */
 public class AopNamespaceHandler extends NamespaceHandlerSupport {
 
@@ -58,10 +60,12 @@ public class AopNamespaceHandler extends NamespaceHandlerSupport {
 	 * Register the {@link BeanDefinitionParser BeanDefinitionParsers} for the
 	 * '{@code config}', '{@code spring-configured}', '{@code aspectj-autoproxy}'
 	 * and '{@code scoped-proxy}' tags.
+	 *
+	 * 		注册 之后 对应的元素 会通过对应的parse 进行解析 获取结果
 	 */
 	@Override
 	public void init() {
-		// In 2.0 XSD as well as in 2.1 XSD.
+		// In 2.0 XSD as well as in 2.1 XSD.   <aop:config> 对应的是ConfigBeanDefinitionParser
 		registerBeanDefinitionParser("config", new ConfigBeanDefinitionParser());
 		registerBeanDefinitionParser("aspectj-autoproxy", new AspectJAutoProxyBeanDefinitionParser());
 		registerBeanDefinitionDecorator("scoped-proxy", new ScopedProxyBeanDefinitionDecorator());

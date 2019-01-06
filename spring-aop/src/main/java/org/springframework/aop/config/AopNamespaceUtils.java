@@ -62,11 +62,19 @@ public abstract class AopNamespaceUtils {
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 将一个解析的 上下文 和一个 待解析的元素传入  进行注册
+	 * @param parserContext
+	 * @param sourceElement
+	 */
 	public static void registerAspectJAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
+		//这里是 返回了一个AspectJAwareAdvisorAutoProxyCreator 的bean 并且使用 使用了一个固定的beanName  internalAutoProxyCreator
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAutoProxyCreatorIfNecessary(
+				//将bean 工厂 和 源数据传入
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		//判断是否需要 进行代理  如果设置了对应的属性 会  再上面返回的beanDefinition 中设置一个属性  proxyTargetClass or exposeProxy
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
@@ -80,21 +88,34 @@ public abstract class AopNamespaceUtils {
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 根据情况进行代理
+	 * @param registry
+	 * @param sourceElement
+	 */
 	private static void useClassProxyingIfNecessary(BeanDefinitionRegistry registry, @Nullable Element sourceElement) {
 		if (sourceElement != null) {
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
+			//这里代表 设置了 proxy-target-class-attribute
 			if (proxyTargetClass) {
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
+			//代表设置了expose-proxy-attribute
 			if (exposeProxy) {
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}
 	}
 
+	/**
+	 * 判断是否需要注册组件
+	 * @param beanDefinition
+	 * @param parserContext
+	 */
 	private static void registerComponentIfNecessary(@Nullable BeanDefinition beanDefinition, ParserContext parserContext) {
 		if (beanDefinition != null) {
+			//将internalProxyCreator 注册到 解析上下文中
 			parserContext.registerComponent(
 					new BeanComponentDefinition(beanDefinition, AopConfigUtils.AUTO_PROXY_CREATOR_BEAN_NAME));
 		}

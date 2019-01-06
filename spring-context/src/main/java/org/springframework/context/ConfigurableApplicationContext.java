@@ -39,6 +39,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 03.11.2003
+ *
+ * 		代表可配置的上下文对象  该对象还继承了  管理对象生命周期的接口Lifecycle
  */
 public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable {
 

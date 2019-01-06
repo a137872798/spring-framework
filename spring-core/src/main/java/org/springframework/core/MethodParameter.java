@@ -56,6 +56,8 @@ import org.springframework.util.ClassUtils;
  * @author Sebastien Deleuze
  * @since 2.0
  * @see org.springframework.core.annotation.SynthesizingMethodParameter
+ *
+ *          Method 和 对应参数的包装类
  */
 public class MethodParameter {
 

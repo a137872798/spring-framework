@@ -48,6 +48,8 @@ import org.springframework.util.ObjectUtils;
  * @since 02.10.2003
  * @see PropertyOverrideConfigurer
  * @see PropertyPlaceholderConfigurer
+ *
+ * 			占位符实现对象
  */
 public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 		implements BeanFactoryPostProcessor, PriorityOrdered {
@@ -73,16 +75,21 @@ public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 	 * {@linkplain #mergeProperties Merge}, {@linkplain #convertProperties convert} and
 	 * {@linkplain #processProperties process} properties against the given bean factory.
 	 * @throws BeanInitializationException if any properties cannot be loaded
+	 *
+	 * 			该方法是 能够通过占位符加载资源文件的关键
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		try {
+			//获取一个属性对象 应该就是从 配置文件中获得的
 			Properties mergedProps = mergeProperties();
 
 			// Convert the merged properties, if necessary.
+			// 必要的话 转化 整合后的属性  spring 目前还没有修改的 实体类
 			convertProperties(mergedProps);
 
 			// Let the subclass process the properties.
+			// 处理属性 应该就是设置到BeanDefinition中
 			processProperties(beanFactory, mergedProps);
 		}
 		catch (IOException ex) {
@@ -97,14 +104,18 @@ public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 	 * for each property value, replacing the original with the converted value.
 	 * @param props the Properties to convert
 	 * @see #processProperties
+	 *
+	 * 			转化给定的 props
 	 */
 	protected void convertProperties(Properties props) {
 		Enumeration<?> propertyNames = props.propertyNames();
 		while (propertyNames.hasMoreElements()) {
 			String propertyName = (String) propertyNames.nextElement();
 			String propertyValue = props.getProperty(propertyName);
+			//转化属性
 			String convertedValue = convertProperty(propertyName, propertyValue);
 			if (!ObjectUtils.nullSafeEquals(propertyValue, convertedValue)) {
+				//设置属性
 				props.setProperty(propertyName, convertedValue);
 			}
 		}

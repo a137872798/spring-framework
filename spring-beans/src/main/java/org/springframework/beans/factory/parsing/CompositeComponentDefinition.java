@@ -30,6 +30,8 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @since 2.0.1
  * @see #getNestedComponents()
+ *
+ * 		一个组合的 Definition 对象
  */
 public class CompositeComponentDefinition extends AbstractComponentDefinition {
 
@@ -38,6 +40,9 @@ public class CompositeComponentDefinition extends AbstractComponentDefinition {
 	@Nullable
 	private final Object source;
 
+	/**
+	 * 内部组合的 ComponentDefinition  每个对象又是 属于 由多个Definition 组成
+	 */
 	private final List<ComponentDefinition> nestedComponents = new ArrayList<>();
 
 

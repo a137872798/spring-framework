@@ -32,6 +32,8 @@ import org.springframework.lang.Nullable;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @since 1.1
+ *
+ * 			实例化策略接口
  */
 public interface InstantiationStrategy {
 
@@ -44,6 +46,8 @@ public interface InstantiationStrategy {
 	 * @param owner the owning BeanFactory
 	 * @return a bean instance for this bean definition
 	 * @throws BeansException if the instantiation attempt failed
+	 *
+	 * 			使用默认的构造方法进行初始化
 	 */
 	Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner)
 			throws BeansException;
@@ -60,6 +64,8 @@ public interface InstantiationStrategy {
 	 * @param args the constructor arguments to apply
 	 * @return a bean instance for this bean definition
 	 * @throws BeansException if the instantiation attempt failed
+	 *
+	 * 			使用给定的构造函数进行初始化
 	 */
 	Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			Constructor<?> ctor, Object... args) throws BeansException;
@@ -78,6 +84,8 @@ public interface InstantiationStrategy {
 	 * @param args the factory method arguments to apply
 	 * @return a bean instance for this bean definition
 	 * @throws BeansException if the instantiation attempt failed
+	 *
+	 * 			使用工厂方法进行初始化
 	 */
 	Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			@Nullable Object factoryBean, Method factoryMethod, Object... args)

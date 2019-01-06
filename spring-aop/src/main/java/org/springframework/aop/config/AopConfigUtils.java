@@ -100,13 +100,22 @@ public abstract class AopConfigUtils {
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 
+	/**
+	 * 进行强制代理
+	 * @param registry
+	 */
 	public static void forceAutoProxyCreatorToUseClassProxying(BeanDefinitionRegistry registry) {
+		//首先要存在 proxyCreator 才能进行代理
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			definition.getPropertyValues().add("proxyTargetClass", Boolean.TRUE);
 		}
 	}
 
+	/**
+	 * 这里只是设置标识  还没有做什么动作
+	 * @param registry
+	 */
 	public static void forceAutoProxyCreatorToExposeProxy(BeanDefinitionRegistry registry) {
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
@@ -120,12 +129,16 @@ public abstract class AopConfigUtils {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
+		//如果bean 工厂包含 internalAuto	ProxyCreater
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			//传入的 class 不是这个类的时候
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				//寻找优先级
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					//优先级小的情况使用传入的 class名
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
@@ -134,8 +147,10 @@ public abstract class AopConfigUtils {
 
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
+		//设置优先级为最高
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		//将传入的 bean 以internal 的名字设置到 bean工厂
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

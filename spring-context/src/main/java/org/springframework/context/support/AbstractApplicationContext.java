@@ -362,6 +362,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * implementations cannot publish events.
 	 * @param event the event to publish (may be an {@link ApplicationEvent}
 	 * or a payload object to be turned into a {@link PayloadApplicationEvent})
+	 *              发布事件的核心实现
 	 */
 	@Override
 	public void publishEvent(Object event) {
@@ -374,16 +375,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * or a payload object to be turned into a {@link PayloadApplicationEvent})
 	 * @param eventType the resolved event type, if known
 	 * @since 4.2
+	 * 			默认不传事件类型
 	 */
 	protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
 		Assert.notNull(event, "Event must not be null");
 
 		// Decorate event as an ApplicationEvent if necessary
 		ApplicationEvent applicationEvent;
+		//如果是Application事件 就进行对应的转换
 		if (event instanceof ApplicationEvent) {
 			applicationEvent = (ApplicationEvent) event;
 		}
 		else {
+			//有效负荷事件  当不存在 事件类型时 (默认是不存在) 就获取有效负荷事件类型
 			applicationEvent = new PayloadApplicationEvent<>(this, event);
 			if (eventType == null) {
 				eventType = ((PayloadApplicationEvent) applicationEvent).getResolvableType();
@@ -391,6 +395,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Multicast right now if possible - or lazily once the multicaster is initialized
+		// 添加到事件容器中
 		if (this.earlyApplicationEvents != null) {
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
@@ -398,6 +403,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
+		// 传递到父对象
 		// Publish event via parent context as well...
 		if (this.parent != null) {
 			if (this.parent instanceof AbstractApplicationContext) {
@@ -702,6 +708,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Instantiate and invoke all registered BeanPostProcessor beans,
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.
+	 *
+	 * ApplicationContext 在初始化时会自动调用这个方法 将BeanProcessor 注册到列表中
 	 */
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);

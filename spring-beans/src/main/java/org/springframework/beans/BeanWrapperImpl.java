@@ -59,6 +59,8 @@ import org.springframework.util.ReflectionUtils;
  * @see #getPropertyType
  * @see BeanWrapper
  * @see PropertyEditorRegistrySupport
+ *
+ * 		bean对象的包装类 实现了 PropertyAccessor 接口 代表可以通过这个对象对 bean 的属性进行注入
  */
 public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements BeanWrapper {
 

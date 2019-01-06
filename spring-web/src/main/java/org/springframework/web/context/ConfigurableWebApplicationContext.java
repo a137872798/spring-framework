@@ -37,6 +37,8 @@ import org.springframework.lang.Nullable;
  * @see #refresh
  * @see ContextLoader#createWebApplicationContext
  * @see org.springframework.web.servlet.FrameworkServlet#createWebApplicationContext
+ *
+ * 			代表处在 WEB 环境中 的 可配置上下文接口
  */
 public interface ConfigurableWebApplicationContext extends WebApplicationContext, ConfigurableApplicationContext {
 

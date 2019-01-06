@@ -61,6 +61,8 @@ import org.springframework.beans.factory.BeanInitializationException;
  * @since 12.03.2003
  * @see #convertPropertyValue
  * @see PropertyPlaceholderConfigurer
+ *
+ * 		这个代表是从配置文件中读取属性并覆盖设置到bean 中的属性
  */
 public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 
@@ -99,6 +101,12 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 	}
 
 
+	/**
+	 * 覆盖父类的 修改属性方法
+	 * @param beanFactory the BeanFactory used by the application context
+	 * @param props the Properties to apply
+	 * @throws BeansException
+	 */
 	@Override
 	protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props)
 			throws BeansException {
@@ -106,6 +114,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 		for (Enumeration<?> names = props.propertyNames(); names.hasMoreElements();) {
 			String key = (String) names.nextElement();
 			try {
+				//获取每个属性名 然后找到对应的bean  已经 要覆盖的属性 之后 覆盖BeanDefinition 的属性
 				processKey(beanFactory, key, props.getProperty(key));
 			}
 			catch (BeansException ex) {
@@ -122,10 +131,12 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 
 	/**
 	 * Process the given key as 'beanName.property' entry.
+	 * 属性key 命名方式 bean名.属性名
 	 */
 	protected void processKey(ConfigurableListableBeanFactory factory, String key, String value)
 			throws BeansException {
 
+		//以.进行拆分
 		int separatorIndex = key.indexOf(this.beanNameSeparator);
 		if (separatorIndex == -1) {
 			throw new BeanInitializationException("Invalid key '" + key +
@@ -134,6 +145,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 		String beanName = key.substring(0, separatorIndex);
 		String beanProperty = key.substring(separatorIndex + 1);
 		this.beanNames.add(beanName);
+		//覆盖属性
 		applyPropertyValue(factory, beanName, beanProperty, value);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Property '" + key + "' set to value [" + value + "]");
@@ -142,10 +154,13 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 
 	/**
 	 * Apply the given property value to the corresponding bean.
+	 *
+	 * 覆盖属性
 	 */
 	protected void applyPropertyValue(
 			ConfigurableListableBeanFactory factory, String beanName, String property, String value) {
 
+		//先根据beanName 找到BeanDefinition
 		BeanDefinition bd = factory.getBeanDefinition(beanName);
 		BeanDefinition bdToUse = bd;
 		while (bd != null) {

@@ -124,30 +124,48 @@ public class PropertyPlaceholderHelper {
 		return parseStringValue(value, placeholderResolver, new HashSet<>());
 	}
 
+	/**
+	 * 这里才是解析的实现
+	 * @param value
+	 * @param placeholderResolver
+	 * @param visitedPlaceholders
+	 * @return
+	 */
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, Set<String> visitedPlaceholders) {
 
+		//因为在beanDefinition 生成时  属性都是从xml 中读取的 可能获取到 就是${****} 那么现在就是将这个字符串进行替换
 		StringBuilder result = new StringBuilder(value);
 
+		//获取 前缀索引 也就是 ${
 		int startIndex = value.indexOf(this.placeholderPrefix);
 		while (startIndex != -1) {
+			//获取 后缀的 位置
 			int endIndex = findPlaceholderEndIndex(result, startIndex);
+			//代表存在 后缀
 			if (endIndex != -1) {
+				//解析 前缀到后缀之间的内容
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
+				//add失败 代表set中已经存在
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
 					throw new IllegalArgumentException(
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
+				// 如果存在嵌套就要进行递归
 				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
 				// Now obtain the value for the fully resolved key...
+				// 根据情况从 系统变量， 环境变量， property属性文件中获取属性
 				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
+				// 没有获取到属性  查看是否有分隔符   有分割符代表前面是 需要解析的占位符  后半部分是 默认值
 				if (propVal == null && this.valueSeparator != null) {
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
 					if (separatorIndex != -1) {
+						//截取分隔符后
 						String actualPlaceholder = placeholder.substring(0, separatorIndex);
 						String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
+						//重新解析
 						propVal = placeholderResolver.resolvePlaceholder(actualPlaceholder);
 						if (propVal == null) {
 							propVal = defaultValue;
@@ -157,7 +175,9 @@ public class PropertyPlaceholderHelper {
 				if (propVal != null) {
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
+					// 应该也是针对嵌套情况
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);
+					//将嵌套的值替换为真实的值
 					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Resolved placeholder '" + placeholder + "'");
@@ -172,6 +192,7 @@ public class PropertyPlaceholderHelper {
 					throw new IllegalArgumentException("Could not resolve placeholder '" +
 							placeholder + "'" + " in value \"" + value + "\"");
 				}
+				//代表该属性已经完成解析了 避免重复解析
 				visitedPlaceholders.remove(originalPlaceholder);
 			}
 			else {
@@ -182,23 +203,35 @@ public class PropertyPlaceholderHelper {
 		return result.toString();
 	}
 
+	/**
+	 * 从起点开始 寻找指定 字符串的位置
+	 * @param buf  被寻找的目标字符串对象
+	 * @param startIndex
+	 * @return
+	 */
 	private int findPlaceholderEndIndex(CharSequence buf, int startIndex) {
 		int index = startIndex + this.placeholderPrefix.length();
 		int withinNestedPlaceholder = 0;
 		while (index < buf.length()) {
+			//找到匹配的后缀下标  这里就是对比每个 char 是否一致  因为是从startIndex 开始遍历的 所以一开始都不会匹配成功 需要遍历完内部 的 字符 才能 成功匹配
 			if (StringUtils.substringMatch(buf, index, this.placeholderSuffix)) {
+				//代表跳出了一层嵌套
 				if (withinNestedPlaceholder > 0) {
 					withinNestedPlaceholder--;
 					index = index + this.placeholderSuffix.length();
 				}
 				else {
+					//如果 没有嵌套层数就可以直接返回
 					return index;
 				}
 			}
+			//这里应该是代表出现了 嵌套 情况 因为 ${  中 还有 {
 			else if (StringUtils.substringMatch(buf, index, this.simplePrefix)) {
+				//代表嵌套数+1
 				withinNestedPlaceholder++;
 				index = index + this.simplePrefix.length();
 			}
+			//普通情况 就是 增加下标
 			else {
 				index++;
 			}

@@ -74,14 +74,18 @@ public class BeanDefinitionVisitor {
 	 * and ConstructorArgumentValues contained in them.
 	 * @param beanDefinition the BeanDefinition object to traverse
 	 * @see #resolveStringValue(String)
+	 *
+	 * 			根据指定的beanDefinition 检查属性
 	 */
 	public void visitBeanDefinition(BeanDefinition beanDefinition) {
+		//这些方法就是获取对应的name 并通过 StringValueResolver 进行解析 再将结果设置进去
 		visitParentName(beanDefinition);
 		visitBeanClassName(beanDefinition);
 		visitFactoryBeanName(beanDefinition);
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
 		if (beanDefinition.hasPropertyValues()) {
+			//针对属性 进行解析
 			visitPropertyValues(beanDefinition.getPropertyValues());
 		}
 		if (beanDefinition.hasConstructorArgumentValues()) {
@@ -141,9 +145,14 @@ public class BeanDefinitionVisitor {
 		}
 	}
 
+	/**
+	 * 针对属性进行解析
+	 * @param pvs
+	 */
 	protected void visitPropertyValues(MutablePropertyValues pvs) {
 		PropertyValue[] pvArray = pvs.getPropertyValues();
 		for (PropertyValue pv : pvArray) {
+			//遍历  解析每个属性
 			Object newVal = resolveValue(pv.getValue());
 			if (!ObjectUtils.nullSafeEquals(newVal, pv.getValue())) {
 				pvs.add(pv.getName(), newVal);
@@ -169,12 +178,19 @@ public class BeanDefinitionVisitor {
 		}
 	}
 
+	/**
+	 * 将传入的  对象解析成 需要的对象并返回
+	 * @param value
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	@Nullable
 	protected Object resolveValue(@Nullable Object value) {
 		if (value instanceof BeanDefinition) {
+			//这里会 递归将里面的属性解析
 			visitBeanDefinition((BeanDefinition) value);
 		}
+		//同上
 		else if (value instanceof BeanDefinitionHolder) {
 			visitBeanDefinition(((BeanDefinitionHolder) value).getBeanDefinition());
 		}
@@ -218,6 +234,7 @@ public class BeanDefinitionVisitor {
 				typedStringValue.setValue(visitedString);
 			}
 		}
+		//如果是String 类型
 		else if (value instanceof String) {
 			return resolveStringValue((String) value);
 		}
@@ -286,6 +303,8 @@ public class BeanDefinitionVisitor {
 	 * Resolve the given String value, for example parsing placeholders.
 	 * @param strVal the original String value
 	 * @return the resolved String value
+	 *
+	 * 		将给定的String 类型解析成 其他String 对象
 	 */
 	@Nullable
 	protected String resolveStringValue(String strVal) {
@@ -293,6 +312,7 @@ public class BeanDefinitionVisitor {
 			throw new IllegalStateException("No StringValueResolver specified - pass a resolver " +
 					"object into the constructor or override the 'resolveStringValue' method");
 		}
+		//委托给 valueResolver 进行解析
 		String resolvedValue = this.valueResolver.resolveStringValue(strVal);
 		// Return original String if not modified.
 		return (strVal.equals(resolvedValue) ? strVal : resolvedValue);

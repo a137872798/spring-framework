@@ -82,10 +82,18 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 		setPropertyValues(pvs, ignoreUnknown, false);
 	}
 
+	/**
+	 * 为bean 对象设置 给定的属性  针对属性的访问都委托到这一层
+	 * @param pvs a PropertyValues to set on the target object
+	 * @param ignoreUnknown should we ignore unknown properties (not found in the bean)
+	 * @param ignoreInvalid should we ignore invalid properties (found but not accessible)
+	 * @throws BeansException
+	 */
 	@Override
 	public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown, boolean ignoreInvalid)
 			throws BeansException {
 
+		//暂存异常的容器
 		List<PropertyAccessException> propertyAccessExceptions = null;
 		List<PropertyValue> propertyValues = (pvs instanceof MutablePropertyValues ?
 				((MutablePropertyValues) pvs).getPropertyValueList() : Arrays.asList(pvs.getPropertyValues()));
@@ -94,6 +102,7 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 				// This method may throw any BeansException, which won't be caught
 				// here, if there is a critical failure such as no matching field.
 				// We can attempt to deal only with less serious exceptions.
+				// 设置属性的核心方法
 				setPropertyValue(pv);
 			}
 			catch (NotWritablePropertyException ex) {

@@ -41,6 +41,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since January 19, 2001
  * @see ServletContextAware#setServletContext
+ *
+ * 		代表是 WBE 上下文 对象
  */
 public interface WebApplicationContext extends ApplicationContext {
 
@@ -99,6 +101,8 @@ public interface WebApplicationContext extends ApplicationContext {
 
 	/**
 	 * Return the standard Servlet API ServletContext for this application.
+	 *
+	 * 获取servlet 上下文
 	 */
 	@Nullable
 	ServletContext getServletContext();

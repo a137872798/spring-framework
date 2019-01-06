@@ -33,6 +33,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Juergen Hoeller
  * @since 2.5.2
+ *
+ * 			简单实现 只有注册BeanDefinition 的功能
  */
 public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements BeanDefinitionRegistry {
 
@@ -40,6 +42,12 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(64);
 
 
+	/**
+	 * 注册 就是添加到容器中
+	 * @param beanName the name of the bean instance to register
+	 * @param beanDefinition definition of the bean instance to register
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
@@ -49,6 +57,11 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 		this.beanDefinitionMap.put(beanName, beanDefinition);
 	}
 
+	/**
+	 * 从容器中移除
+	 * @param beanName the name of the bean instance to register
+	 * @throws NoSuchBeanDefinitionException
+	 */
 	@Override
 	public void removeBeanDefinition(String beanName) throws NoSuchBeanDefinitionException {
 		if (this.beanDefinitionMap.remove(beanName) == null) {

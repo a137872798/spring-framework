@@ -36,6 +36,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @see org.springframework.context.support.ResourceBundleMessageSource
  * @see org.springframework.context.support.ReloadableResourceBundleMessageSource
+ *
+ * 			支持国际化的 消息源接口
  */
 public interface MessageSource {
 
@@ -52,6 +54,8 @@ public interface MessageSource {
 	 * @return the resolved message if the lookup was successful;
 	 * otherwise the default message passed as a parameter
 	 * @see java.text.MessageFormat
+	 *
+	 * 			获取消息
 	 */
 	@Nullable
 	String getMessage(String code, @Nullable Object[] args, @Nullable String defaultMessage, Locale locale);

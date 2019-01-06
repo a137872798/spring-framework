@@ -31,6 +31,8 @@ package org.springframework.beans.factory;
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1
+ *
+ * 			实现该接口代表给Bean 增加一个 可以被感知的 属性 比如 BeanNameAware 代表可以从这个bean上获取beanName
  */
 public interface Aware {
 
