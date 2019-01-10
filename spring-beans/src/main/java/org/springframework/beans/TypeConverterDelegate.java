@@ -97,6 +97,7 @@ class TypeConverterDelegate {
 			@Nullable MethodParameter methodParam) throws IllegalArgumentException {
 
 		return convertIfNecessary(null, null, newValue, requiredType,
+				//当没传入methodParam时 将类型描述信息传入 convertIfNecessary  就是包装成了一个对象
 				(methodParam != null ? new TypeDescriptor(methodParam) : TypeDescriptor.valueOf(requiredType)));
 	}
 

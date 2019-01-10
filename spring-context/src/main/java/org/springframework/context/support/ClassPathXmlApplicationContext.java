@@ -48,6 +48,8 @@ import org.springframework.util.Assert;
  * @see #getResource
  * @see #getResourceByPath
  * @see GenericApplicationContext
+ *
+ * 			通过xml 创建 applicationContext对象
  */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
 
@@ -133,13 +135,17 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @param parent the parent context
 	 * @throws BeansException if context creation failed
 	 * @see #refresh()
+	 *
+	 * 		当该对象首次初始化时 就会调用refresh 进行初始化工作 也就是创建bean 对象
 	 */
 	public ClassPathXmlApplicationContext(
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
 
 		super(parent);
+		//设置配置文件的位置
 		setConfigLocations(configLocations);
+		//默认为 true 开始初始化工作
 		if (refresh) {
 			refresh();
 		}

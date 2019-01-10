@@ -61,6 +61,7 @@ public final class BridgeMethodResolver {
 	 * if no more specific one could be found)
 	 */
 	public static Method findBridgedMethod(Method bridgeMethod) {
+		//判断是否是 桥接方法 不是直接返回
 		if (!bridgeMethod.isBridge()) {
 			return bridgeMethod;
 		}

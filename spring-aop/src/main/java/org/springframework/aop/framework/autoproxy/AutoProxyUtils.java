@@ -76,6 +76,7 @@ public abstract class AutoProxyUtils {
 	}
 
 	/**
+	 * 判断当前bean是否是特殊bean
 	 * Determine the original target class for the specified bean, if possible,
 	 * otherwise falling back to a regular {@code getType} lookup.
 	 * @param beanFactory the containing ConfigurableListableBeanFactory

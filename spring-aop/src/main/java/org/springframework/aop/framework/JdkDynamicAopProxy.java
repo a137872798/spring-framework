@@ -60,6 +60,8 @@ import org.springframework.util.ClassUtils;
  * @see java.lang.reflect.Proxy
  * @see AdvisedSupport
  * @see ProxyFactory
+ *
+ * 			该对象自身就实现了 InvocationHandler接口
  */
 final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializable {
 
@@ -150,6 +152,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	 * Implementation of {@code InvocationHandler.invoke}.
 	 * <p>Callers will see exactly the exception thrown by the target,
 	 * unless a hook method throws an exception.
+	 *
+	 * jdk实现aop 的 核心逻辑
 	 */
 	@Override
 	@Nullable
@@ -162,10 +166,12 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		Object target = null;
 
 		try {
+			//如果是 equals 方法 调用这里的equals
 			if (!this.equalsDefined && AopUtils.isEqualsMethod(method)) {
 				// The target does not implement the equals(Object) method itself.
 				return equals(args[0]);
 			}
+			//代表某些方法是不做处理的
 			else if (!this.hashCodeDefined && AopUtils.isHashCodeMethod(method)) {
 				// The target does not implement the hashCode() method itself.
 				return hashCode();

@@ -563,7 +563,7 @@ public class BeanDefinitionParserDelegate {
 		this.parseState.push(new BeanEntry(beanName));
 
 		String className = null;
-		//如果有 class标签 获取
+		//如果有 class标签 获取      if (hasBeanCreationStarted()) {
 		if (ele.hasAttribute(CLASS_ATTRIBUTE)) {
 			className = ele.getAttribute(CLASS_ATTRIBUTE).trim();
 		}

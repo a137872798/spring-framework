@@ -31,6 +31,8 @@ import org.springframework.util.ClassUtils;
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @since 14.03.2003
+ *
+ * 			代理工厂对象 用于生成aop 对象 核心功能是通过support实现的
  */
 @SuppressWarnings("serial")
 public class ProxyFactory extends ProxyCreatorSupport {

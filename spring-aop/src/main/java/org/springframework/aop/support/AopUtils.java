@@ -211,6 +211,9 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 *
+	 * 大体是利用 pc的  classfilter 去匹配 该 bean 对象是否是 切入点 是的话就可以开始织入
+	 * 而classFilter 就是 AspectJExpressionPointcut对象
 	 * Can the given pointcut apply at all on the given class?
 	 * <p>This is an important test as it can be used to optimize
 	 * out a pointcut for a class.

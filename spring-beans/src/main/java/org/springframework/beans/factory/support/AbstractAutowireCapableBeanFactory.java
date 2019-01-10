@@ -412,11 +412,23 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return initializeBean(beanName, existingBean, null);
 	}
 
+	/**
+	 * @param existingBean the new bean instance
+	 * (only passed to {@link BeanPostProcessor BeanPostProcessors};
+	 * can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
+	 * enforce the given instance to be returned, i.e. no proxies etc)
+	 * @param beanName
+	 * @return
+	 * @throws BeansException
+	 *
+	 * 		aop 的 核心实现就在这里
+	 */
 	@Override
 	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
 			throws BeansException {
 
 		Object result = existingBean;
+		//获取该工厂的 处理器对象 并进行处理
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			Object current = processor.postProcessBeforeInitialization(result, beanName);
 			if (current == null) {
@@ -457,7 +469,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * populates the bean instance, applies post-processors, etc.
 	 * @see #doCreateBean
 	 *
-	 *          生成bean对象的核心方法
+	 *          生成bean对象的核心方法 这里会完成属性的注入
 	 */
 	@Override
 	protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
@@ -471,7 +483,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point, and
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
-		// 解析给定参数  生成class对象
+		// 这里就是从 bd 对象中获取 class 描述信息  一般都会设置 其他 比较少用的情况就先不看了
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			//生成一个副本对象 并将 class属性设置进去
@@ -481,7 +493,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Prepare method overrides.
 		try {
-			//检测override 方法是否属实
+			//判断是否重写了 方法 就是 获取 overrides 中 的方法是否 在父类 实现接口 本类中一共出现了超过一次  是的话就代表是重写的 方法
 			mbdToUse.prepareMethodOverrides();
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -548,7 +560,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//移除之前创建的缓存对象
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
-		//使用合适的实例化策略创建新对象
+		//使用合适的实例化策略创建新对象  使用工厂方法 或者 构造函数初始化
 		if (instanceWrapper == null) {
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
@@ -577,7 +589,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
-		// 如果是单例模式 允许循环依赖 且当前单例bean 正在创建中    只有单例的情况才需要解决循环依赖
+		// 这里就是解决循环依赖的关键
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 
@@ -586,8 +598,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			//将该bean 设置到 early中 提早暴露  这个bean 还没有设置属性   这里传入的是一个 抽象工厂类 实现了 getEarlyBeanReference
-			//这样 最上面就可以从这个三级缓存生成  earlyBean 对象了
+			//这里将 getObject 方法 转发到 getEarlyBeanReference 这里的对象还没有 注入属性
+			//对应到getBean 的getSingleton 没有直接找到缓存对象时 调用的方法  这里也就是把这个bean 返回了
+			//这里就是 返回未完全初始化 bean的过程   比如A对象创建到这一步 还没有 到设置依赖 然后先将自身设置到 3级缓存中这样 在注入属性时初始化其他bean
+			//其他bean 反过来需要 A对象时 就可以在 getBean 的 getSingleton 中直接获取3级缓存的bean对象
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -953,6 +967,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd the merged bean definition for the bean
 	 * @param bean the raw bean instance
 	 * @return the object to expose as bean reference
+	 *
+	 * 		当getBean方法没有直接从缓存中获取到实例时 或委托到这个方法
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
@@ -1174,8 +1190,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Shortcut when re-creating the same bean...
 		boolean resolved = false;
 		boolean autowireNecessary = false;
+		//要创建对象  参数为null 的情况
 		if (args == null) {
 			synchronized (mbd.constructorArgumentLock) {
+				//下面这种情况就是 之前原型模式 下 重复创建bean 对象 这里直接使用缓存的参数就可以
 				//已缓存的构造函数 或工厂方法不为空 利用构造函数解析
 				if (mbd.resolvedConstructorOrFactoryMethod != null) {
 					//代表 解析已经完成
@@ -1198,7 +1216,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Candidate constructors for autowiring?
-		// 确定解析的构造函数
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		// 如果需要自动注入 就使用自动注入生成 包装对象
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
@@ -1207,7 +1224,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Preferred constructors for default construction?
-		// 选择构造方法创建bean 对象
+		// 选择构造方法创建bean 对象  一般mbd 是 RootBeanDefinition  也就是直接返回null
 		ctors = mbd.getPreferredConstructors();
 		if (ctors != null) {
 			return autowireConstructor(beanName, mbd, ctors, null);
@@ -1312,7 +1329,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd the bean definition for the bean
 	 * @return a BeanWrapper for the new instance
 	 *
-	 * 			生成bean对象
+	 * 			生成bean对象 实际上就是使用默认构造器进行初始化
 	 */
 	protected BeanWrapper instantiateBean(final String beanName, final RootBeanDefinition mbd) {
 		try {
@@ -1435,11 +1452,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_NAME || mbd.getResolvedAutowireMode() == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable.
-			// 填充 应该就是通过反射获取 setXXX 方法进行注入
+			// 将 属性设置到 newPvs中
 			if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_NAME) {
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
-			//根据类型进行填充
+			// 将 属性设置到 newPvs中
 			// Add property values based on autowire by type if applicable.
 			if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_TYPE) {
 				autowireByType(beanName, mbd, bw, newPvs);
@@ -1459,6 +1476,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				//如果包含自动注入的  beanProcessor 就进行 自动注入
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					//对属性进行处理后  上面是针对bp进行处理这里是对属性进行处理
@@ -1502,7 +1520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param bw the BeanWrapper from which we can obtain information about the bean
 	 * @param pvs the PropertyValues to register wired objects with
 	 *
-	 *            通过名字进行注入
+	 *            这里只是将 需要 设置的属性设置到 pvs 中 还没有调用对象的setXXX方法
 	 */
 	protected void autowireByName(
 			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
@@ -1512,7 +1530,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (String propertyName : propertyNames) {
 			//是否该属性对应的bean 已经创建完成
 			if (containsBean(propertyName)) {
-				//获取对应的bean对象 进行注入
+				//获取对应的bean对象 进行注入 这里就是可能发生循环依赖的地方
 				Object bean = getBean(propertyName);
 				//pvs代表设置进去的 属性
 				pvs.add(propertyName, bean);
@@ -1600,6 +1618,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param bw the BeanWrapper the bean was created with
 	 * @return an array of bean property names
 	 * @see org.springframework.beans.BeanUtils#isSimpleProperty
+	 *
+	 * 			这里 找到所有属性中 带set 方法的属性
 	 */
 	protected String[] unsatisfiedNonSimpleProperties(AbstractBeanDefinition mbd, BeanWrapper bw) {
 		Set<String> result = new TreeSet<>();

@@ -170,6 +170,8 @@ public class InjectionMetadata {
 
 		/**
 		 * Either this or {@link #getResourceToInject} needs to be overridden.
+		 *
+		 * 		autowire 重写了 inject 方法  见 AutowireFieldElement AutowireMethodElement
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
@@ -184,8 +186,10 @@ public class InjectionMetadata {
 					return;
 				}
 				try {
+					//如果是 方法 就调用方法 设置
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
+					//根据传入的  beanName 找到对应的bean 并 执行注入方法
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {

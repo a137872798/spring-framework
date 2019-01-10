@@ -91,7 +91,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 * Set the name of the parent definition of this bean definition, if any.
 	 *
-	 * 该bean的 parent bean对象
+	 * 该bean的 parent bean对象  只是从 父Bean 中获取配置信息
 	 */
 	void setParentName(@Nullable String parentName);
 
@@ -208,7 +208,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * This the name of the bean to call the specified factory method on.
 	 * @see #setFactoryMethodName
 	 *
-	 * 关联的 bean工厂名
+	 * 如果该对象是使用特殊的工厂bean 生成的  设置工厂bean 的name
 	 */
 	void setFactoryBeanName(@Nullable String factoryBeanName);
 

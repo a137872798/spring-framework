@@ -93,8 +93,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	 * @throws BeanCreationException if FactoryBean object creation failed
 	 * @see org.springframework.beans.factory.FactoryBean#getObject()
 	 *
-	 *         通过工厂bean 创建实例化bean 对象的核心方法  这里也就是做了防止同时创建bean对象 已经做了aop处理 通过调用factory的getObject生成了对象具体逻辑
-	 *         没有在这里体现
+	 *         通过factoryBean 的 对应方法生成指定对象并返回
 	 */
 	protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
 		//如果该工厂bean 是单例 并且 beanName 已经存在于singleton容器中 这个容器中存放的是已经创建好的bean对象 这里也就是说 是 已经完成实例化
@@ -104,10 +103,11 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				//先从工厂中缓存的 数据中 获取bean对象
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
-					//通过工厂创建bean对象
+					//通过工厂创建bean对象   其实就是调用getObject 方法 获取 factoryBean 生成的对象
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
+					// 进行缓存
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
 					if (alreadyThere != null) {
 						//如果容器中的数据 不是 生成的对象 设置成生成的对象
@@ -117,7 +117,6 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 					else {
 						//如果需要做后续处理
 						if (shouldPostProcess) {
-							//如果对象正在创建中 直接返回  这个对象要是返回了 可以使用吗???不是应该使用正在创建的那个对象吗 因为那个对象多了一步加工处理
 							if (isSingletonCurrentlyInCreation(beanName)) {
 								// Temporarily return non-post-processed object, not storing it yet..
 								return object;

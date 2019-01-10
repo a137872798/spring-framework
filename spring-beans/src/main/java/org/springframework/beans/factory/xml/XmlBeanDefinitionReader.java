@@ -448,7 +448,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
-			//将xml 对象解析成document 对象  这里 还没有 抽取 属性 但是应该通过了验证
+			//将xml 对象解析成document 对象  这里 还没有 抽取 属性 但是应该通过了验证  这里只是对应到一个资源文件 因为一个xml解析对象可以设置了多个资源
 			Document doc = doLoadDocument(inputSource, resource);
 			//执行生成beanDefinition 的 逻辑
 			int count = registerBeanDefinitions(doc, resource);

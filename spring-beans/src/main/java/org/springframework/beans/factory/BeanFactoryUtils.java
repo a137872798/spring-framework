@@ -224,12 +224,17 @@ public abstract class BeanFactoryUtils {
 	 * @param type the type that beans must match
 	 * @return the array of matching bean names, or an empty array if none
 	 * @see ListableBeanFactory#getBeanNamesForType(Class, boolean, boolean)
+	 *
+	 *
+	 * 			根据类型来获取一组bean 对象
 	 */
 	public static String[] beanNamesForTypeIncludingAncestors(
 			ListableBeanFactory lbf, Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
+		//通过传入的类型 返回一组 候选的 注入对象  就是匹配 需要注入的属性的class 和 bd 所描述的class 是否匹配
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+		//这部分先不看
 		if (lbf instanceof HierarchicalBeanFactory) {
 			HierarchicalBeanFactory hbf = (HierarchicalBeanFactory) lbf;
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
@@ -238,6 +243,7 @@ public abstract class BeanFactoryUtils {
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}
+		//返回结果
 		return result;
 	}
 

@@ -68,6 +68,13 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	}
 
 
+	/**
+	 * 这里 寻找需要进行动态代理的对象
+	 * @param beanClass the class of the bean to advise
+	 * @param beanName the name of the bean
+	 * @param targetSource
+	 * @return
+	 */
 	@Override
 	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(
@@ -75,12 +82,14 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
+			//返回null 代表不需要处理
 			return DO_NOT_PROXY;
 		}
 		return advisors.toArray();
 	}
 
 	/**
+	 * 寻找需要动态代理的对象  eligible 符合条件的
 	 * Find all eligible Advisors for auto-proxying this class.
 	 * @param beanClass the clazz to find advisors for
 	 * @param beanName the name of the currently proxied bean
@@ -89,10 +98,16 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #findCandidateAdvisors
 	 * @see #sortAdvisors
 	 * @see #extendAdvisors
+	 *
+	 * 		每個生成的對象 都会触发
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+		//获取 候选者列表  就是bean 的类型是 Advisor子类的
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
+		//这里获取所有的加工对象 比如 before 等  当前传入的bean 就是判断是否需要被代理的对象 只要符合<aop:pointcut> 的 express 就可以进行代理
+		//比如AfterReturningAdvice
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		//扩充 应该是要什么固定的  编织对象吧  在链表首部(这个list 是linkedList) 添加 DefaultPointcutAdvisor
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
@@ -110,6 +125,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	}
 
 	/**
+	 * 这里返回的列表 就代表 所有的 advisor  比如 before after 等  然后bean 就会被这个列表中所有对象 编织生成 代理对象
 	 * Search the given candidate Advisors to find all Advisors that
 	 * can apply to the specified bean.
 	 * @param candidateAdvisors the candidate Advisors
@@ -121,8 +137,10 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected List<Advisor> findAdvisorsThatCanApply(
 			List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
 
+		//设置当前判断是否代理的bean  就是添加到一个容器中
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
+			//传入候选对象 以及当前传入的bean   这里就是 根据 expression 去匹配该类 是不是切点  这里跟aspect 相关 先不看了
 			return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
 		}
 		finally {

@@ -191,7 +191,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		//从生成的容器中获取单例对象
 		Object singletonObject = this.singletonObjects.get(beanName);
-		//如果 对象还没有被创建 或者处于正在创建的情况
+		//如果 对象还没有被创建 并且处于正在创建的情况
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
 				//从early容器中 获取单例对象  这个容器对应到 factory提前创建的对象
@@ -222,7 +222,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * with, if necessary
 	 * @return the registered singleton object
 	 *
-	 *              获取单例对象  第二个参数是 传入单例工厂
+	 *              获取单例对象  第二个参数含有创建bean 的方法
 	 */
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "Bean name must not be null");
@@ -250,7 +250,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
-					//通过单例工厂创建对象   也是通过getObject 生成对象
+					//通过单例工厂创建对象   也是通过getObject 生成对象 这里的实现对应 createBean
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -279,7 +279,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
-					//应该是添加到缓存中
+					//返回的对象是完整的(已经完成属性注入) 那么直接保存到一级缓存
 					addSingleton(beanName, singletonObject);
 				}
 			}

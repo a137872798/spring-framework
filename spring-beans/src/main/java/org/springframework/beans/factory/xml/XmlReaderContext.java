@@ -149,6 +149,7 @@ public class XmlReaderContext extends ReaderContext {
 	 * @see BeanDefinitionRegistry#registerBeanDefinition
 	 */
 	public String registerWithGeneratedName(BeanDefinition beanDefinition) {
+		//生成 beanName
 		String generatedName = generateBeanName(beanDefinition);
 		getRegistry().registerBeanDefinition(generatedName, beanDefinition);
 		return generatedName;

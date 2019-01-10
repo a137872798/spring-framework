@@ -292,12 +292,16 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
+	 *
+	 * 	aopCreator 对象 对生成的bean 对象做了后置处理
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
+			//根据情况处理beanName  (如果 是 实现了 BeanFactory的bd 对象 就 增加前缀)
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (!this.earlyProxyReferences.contains(cacheKey)) {
+				//如果需要包装就返回包装对象
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -315,6 +319,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @param beanClass the bean class
 	 * @param beanName the bean name
 	 * @return the cache key for the given class and name
+	 *
+	 * 		这里就是 如果bean 是 factoryBean 的子类 增加前缀
 	 */
 	protected Object getCacheKey(Class<?> beanClass, @Nullable String beanName) {
 		if (StringUtils.hasLength(beanName)) {
@@ -332,11 +338,15 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @param beanName the name of the bean
 	 * @param cacheKey the cache key for metadata access
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
+	 *
+	 * 		根据情况 对bean 对象进行aop 处理
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		//存在这个容器中 就不需要处理
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		//不是 advise对象就不处理
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
@@ -346,15 +356,20 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		// 这里返回了 针对该bean 使用的 advice对象
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
+			//将beanName 保存到需要被编织的容器中
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			//应该是利用CGLIB 生成代理对象
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+			//设置 代理对象容器
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}
 
+		//看来所有的bean 都会被添加到该容器中 只是 boolean 的值不同
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
 		return bean;
 	}
@@ -431,6 +446,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * 创建 代理对象的 核心方法
 	 * Create an AOP proxy for the given bean.
 	 * @param beanClass the class of the bean
 	 * @param beanName the name of the bean
@@ -444,22 +460,27 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
 
+		//如果当前工厂是可配置工厂  将当前类 以 特殊类的形式暴露出来 也就是告诉别人该bean 是被aop加工过的  也就是设置originalTargetClass属性
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
+		//创建一个代理工厂对象
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
+		//代表 代理的范围    代理接口就代表是 JDK 动态代理 如果是 整个类就是 CGLIB
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
+				//评估需要代理的接口 如果存在需要代理的接口的话 会将接口设置到 proxyFactory中
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
 
+		//构建 advisor对象  就是添加一些参数
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
@@ -470,6 +491,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			proxyFactory.setPreFiltered(true);
 		}
 
+		//核心通过该工厂生成 代理对象
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
