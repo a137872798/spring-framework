@@ -72,7 +72,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		if (advisorNames == null) {
 			// Do not initialize FactoryBeans here: We need to leave all regular beans
 			// uninitialized to let the auto-proxy creator apply to them!
-			// 这里是根据beanName 来进行过滤吗???
+			// 这里返回的是所有 类型信息是 Advisor 的 bd对象的beanName
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
 			//获取 所有 类型是Advisor的 beanName
@@ -85,6 +85,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		//遍历 每个 advisor对象 这里要进行二次筛选
 		List<Advisor> advisors = new ArrayList<>();
 		for (String name : advisorNames) {
+			//这里如果 为需要进行aop的类设置了指定的前缀 那beanName 一定要带上这个前缀 如果没有设置默认就是返回true
 			if (isEligibleBean(name)) {
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
@@ -93,6 +94,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 				else {
 					try {
+						//获取对应的 bean 对象
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
 					}
 					catch (BeanCreationException ex) {

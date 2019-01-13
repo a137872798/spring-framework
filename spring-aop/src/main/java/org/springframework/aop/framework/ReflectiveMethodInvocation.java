@@ -159,10 +159,12 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	@Nullable
 	public Object proceed() throws Throwable {
 		//	We start with an index of -1 and increment early.
+		// 当执行到最后一个增强点时   这里应该有一个链式调用 不断执行proceed  这个invokeJoinpoint 就是正常的执行method 方法
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
 			return invokeJoinpoint();
 		}
 
+		// 获取下一个拦截链对象
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
@@ -171,12 +173,16 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			InterceptorAndDynamicMethodMatcher dm =
 					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
 			Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
+			//匹配成功的情况下 调用对应方法  这里的 匹配基本都是委托给 aspect包下的对象实现的  一般也就是express 匹配
 			if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
+				//每个 dm 比如 AspectJMethodBeforeAdvice   AspectJAfterAdvice 也就是在 目标方法调用的前后调用自己的方法
+				//注意 调用的是目标对象的 processor 方法 也就是会 递归进来 获取链中下一个advice 对象并在对应时机触发
 				return dm.interceptor.invoke(this);
 			}
 			else {
 				// Dynamic matching failed.
 				// Skip this interceptor and invoke the next in the chain.
+				// 不匹配情况就跳过这个链节点
 				return proceed();
 			}
 		}

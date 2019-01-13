@@ -132,16 +132,17 @@ public abstract class AopConfigUtils {
 		//如果bean 工厂包含 internalAuto	ProxyCreater
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
-			//传入的 class 不是这个类的时候
+			//传入的 class 不是这个类的时候  这里可能是 AnnotationAwareAspectJAutoProxyCreator
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
-				//寻找优先级
+				//寻找优先级  这里就是将所有 能触发aop的类添加到一个列表中 下标就是优先级
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
-					//优先级小的情况使用传入的 class名
+					//越后面的元素 优先级越高  也就是同时使用xml 和 注解的情况下 注解的优先级会更高(xml 中存在一个使用注解查找aop的 标签  aspectj-autoproxy)
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
+			//代表原来就存在 那就不返回 bd 对象了
 			return null;
 		}
 

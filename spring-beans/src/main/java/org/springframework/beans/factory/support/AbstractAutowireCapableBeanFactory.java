@@ -576,7 +576,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
-					//如果存在后置处理
+					//如果需要处理属性  这里生成了 @autowire  @value 注解的元数据信息
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -628,13 +628,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (earlySingletonExposure) {
 			//获取提前暴露的 对象
 			Object earlySingletonReference = getSingleton(beanName, false);
-			//代表存在循环依赖
+			//代表 已经生成了 对象 或者保存了一个未完全设置属性的对象
 			if (earlySingletonReference != null) {
 				//如果对象没有发生变化
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
-				//处理依赖
+				//这里先不管
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
 					String[] dependentBeans = getDependentBeans(beanName);
 					Set<String> actualDependentBeans = new LinkedHashSet<>(dependentBeans.length);
@@ -1085,7 +1085,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param beanName the name of the bean
 	 * @see MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition
 	 *
-	 *         进行后置处理
+	 *         进行后置处理  也就是注入属性之类的
 	 */
 	protected void applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName) {
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
@@ -1454,11 +1454,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// Add property values based on autowire by name if applicable.
 			// 将 属性设置到 newPvs中
 			if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_NAME) {
+				//因为beanName 是全局唯一的 所以后去到后直接设置到 property的键值对中
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 			// 将 属性设置到 newPvs中
 			// Add property values based on autowire by type if applicable.
 			if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_TYPE) {
+				//因为class 可以是重复的就去获取所有候选人后 通过 primary 或优先级定位到具体候选对象并添加到 property的键值对 不过一般javaBean 的属性我们是不需要通过spring
+				//来完成初始化的 只是处理 含有 @Autowire 和 @Value 的属性时 获取候选人完成注入
 				autowireByType(beanName, mbd, bw, newPvs);
 			}
 			pvs = newPvs;
@@ -1479,7 +1482,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				//如果包含自动注入的  beanProcessor 就进行 自动注入
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					//对属性进行处理后  上面是针对bp进行处理这里是对属性进行处理
+					//这里就是注入的过程 分为method 注入 和 field 注入  在初始化 Support对象时就完成了 AutoWire processor的设置过程
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {
@@ -1505,7 +1508,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
-		//将属性设置到bean中 主要就是根据 集合类 或者普通类调用setXXX方法
+		//将属性设置到bean中 主要就是根据 集合类 或者普通类调用setXXX方法  如果 是field 就直接设置值 也就是需要注入哪些值是上面 生成psv的逻辑决定的
 		if (pvs != null) {
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
@@ -1573,7 +1576,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		//这里存放的 是 被注入的beanName 在解析时 先传入空容器 解析完成后会设置
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
-		//获取需要注入的属性
+		//获取需要注入的属性  这里将每个属性 都通过desc的 class信息去获取bean工厂的实例 并设置属性
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
 			try {
@@ -1588,7 +1591,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					// 不允许eager 使用类型匹配
 					boolean eager = !PriorityOrdered.class.isInstance(bw.getWrappedInstance());
 					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
-					//解析这里依赖信息 生成注入的参数
+					//解析这里依赖信息 生成注入的参数    核心是通过desc 获取需要的 class 然后去bd 中从多个符合者中选中一个 然后 生成实例并返回
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
 						pvs.add(propertyName, autowiredArgument);
@@ -1626,7 +1629,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyValues pvs = mbd.getPropertyValues();
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
-			//存在 该属性的 set 方法   不存在被排除的依赖检测   不包含该属性名 且 非简单属性
+			//存在 该属性的 set 方法   不存在被排除的依赖检测   不包含该属性名 且 非简单属性  这个是java.beans的原生方法
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {
 				result.add(pd.getName());

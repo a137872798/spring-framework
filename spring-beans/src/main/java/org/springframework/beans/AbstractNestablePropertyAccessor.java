@@ -315,7 +315,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 			Object oldValue = null;
 			try {
 				if (isExtractOldValueForEditor() && arrayIndex < Array.getLength(propValue)) {
-					//获取数组对应的值
+					//获取数组对应的值  一般都是null 因为该对象的属性还没有注入
 					oldValue = Array.get(propValue, arrayIndex);
 				}
 				//这里会将新的值设置到pv.getValue()中
@@ -490,7 +490,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				else {
 					if (isExtractOldValueForEditor() && ph.isReadable()) {
 						try {
-							//通过反射调用 getXXX 方法 获取 属性值
+							//如果可读 就先获取旧的值  一般情况 conversion 是不需要旧值的 下面的方法需要传入该参数应该是为了处理某种特殊情况
 							oldValue = ph.getValue();
 						}
 						catch (Exception ex) {

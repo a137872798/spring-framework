@@ -1423,6 +1423,7 @@ public abstract class AnnotationUtils {
 			return null;
 		}
 		try {
+			//从注解对象获取指定方法名 并调用返回结果
 			Method method = annotation.annotationType().getDeclaredMethod(attributeName);
 			ReflectionUtils.makeAccessible(method);
 			return method.invoke(annotation);

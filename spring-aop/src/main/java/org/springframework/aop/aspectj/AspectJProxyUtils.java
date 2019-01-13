@@ -38,6 +38,8 @@ public abstract class AspectJProxyUtils {
 	 * AspectJ advisors in the advisor chain.
 	 * @param advisors the advisors available
 	 * @return {@code true} if any special {@link Advisor Advisors} were added, otherwise {@code false}
+	 *
+	 * 		判断是否要给列表增加一个 指定的 对象
 	 */
 	public static boolean makeAdvisorChainAspectJCapableIfNecessary(List<Advisor> advisors) {
 		// Don't add advisors to an empty list; may indicate that proxying is just not required
@@ -51,6 +53,7 @@ public abstract class AspectJProxyUtils {
 				}
 			}
 			if (foundAspectJAdvice && !advisors.contains(ExposeInvocationInterceptor.ADVISOR)) {
+				//给列表首部增加了一个固定的元素
 				advisors.add(0, ExposeInvocationInterceptor.ADVISOR);
 				return true;
 			}

@@ -79,8 +79,11 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * <p>Creates a Spring Advisor for each AspectJ advice method.
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
 	 * @see #isEligibleBean
+	 *
+	 * 		将包含@Aspect注解的 类设置到列表中
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
+		//尝试从缓存中获取
 		List<String> aspectNames = this.aspectBeanNames;
 
 		if (aspectNames == null) {
@@ -89,6 +92,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					//这里传入的类型是 Object 那就是获取所有的bd对象
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -97,21 +101,29 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
+						// 获取bd 对象的类型
 						Class<?> beanType = this.beanFactory.getType(beanName);
 						if (beanType == null) {
 							continue;
 						}
+						//查看该class 对象是否被 Aspect 修饰
 						if (this.advisorFactory.isAspect(beanType)) {
+							//被修饰的对象要添加到列表中
 							aspectNames.add(beanName);
+							//生成 aspect 的元数据
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
+
+							//这里的逻辑好像是区分该 aj对象是 单例的还是原型的  这些属于aspecj包下面的东西 暂时不管
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								//这里就是将 该bean 对应的所有advisor抽取出来并设置缓存
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
+									//这里就是将beanName 与对应的实例工厂关联起来
 									this.aspectFactoryCache.put(beanName, factory);
 								}
 								advisors.addAll(classAdvisors);
@@ -135,16 +147,19 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			}
 		}
 
+		//如果没有类上添加了 aspect 注解 直接返回空容器
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
+			//缓存中存在 对应的 advisor的话 直接添加到容器中
 			if (cachedAdvisors != null) {
 				advisors.addAll(cachedAdvisors);
 			}
 			else {
+				//这里就是将@Aspect 修饰的类的所有方法 按照aop注解抽象成 对应的advisor 对象并设置到列表中
 				MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
 				advisors.addAll(this.advisorFactory.getAdvisors(factory));
 			}

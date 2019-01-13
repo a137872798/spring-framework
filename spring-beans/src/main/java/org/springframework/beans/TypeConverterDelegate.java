@@ -166,7 +166,7 @@ class TypeConverterDelegate {
 		if (editor == null && conversionService != null && newValue != null && typeDescriptor != null) {
 			//根据传入的新属性 获取 类型的描述信息
 			TypeDescriptor sourceTypeDesc = TypeDescriptor.forObject(newValue);
-			//先判断 能否转化
+			//先判断 能否转化  就是找有没有 对应的 转换对象
 			if (conversionService.canConvert(sourceTypeDesc, typeDescriptor)) {
 				try {
 					//返回转化结果

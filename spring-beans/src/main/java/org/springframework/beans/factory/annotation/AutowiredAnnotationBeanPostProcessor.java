@@ -225,9 +225,17 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 
+	/**
+	 * 进行属性注入
+	 * @param beanDefinition the merged bean definition for the bean
+	 * @param beanType the actual type of the managed bean instance
+	 * @param beanName the name of the bean
+	 */
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		//寻找需要注入的目标属性
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType, null);
+		//这里就是添加到一个缓存中 还不确定是 为什么
 		metadata.checkConfigMembers(beanDefinition);
 	}
 
@@ -419,6 +427,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 		// Quick check on the concurrent map first, with minimal locking.
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
+		//当目标类型替换 或者 不存在 缓存时 创建新的 注入体数据
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
 				metadata = this.injectionMetadataCache.get(cacheKey);
@@ -608,7 +617,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
-				//未缓存情况
+				//未缓存情况  这里首先传入了 field 生成了 desc 对象 之后 通过resolveDependency 获取候选者对象
+				//大概逻辑是这样：
+				//先从desc上解析出需要注入的bean 类型 就是通过生成desc时 传入的fied 去调用.getClass 确定 依赖需要的类型 然后去 bdmap中找到所有class 是要求的 class 的 子类或本类
+				//之后 根据是否设置 primary 或者 order优先级 定位到唯一 bean 后尝试获取实例  没有实例就获取 class 之后如果是class 就生成实例 并返回
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
@@ -621,15 +633,19 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				catch (BeansException ex) {
 					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 				}
+				//使用内置锁 尝试设置到缓存中
 				synchronized (this) {
 					if (!this.cached) {
 						if (value != null || this.required) {
 							this.cachedFieldValue = desc;
+							//通常情况下 autowiredBeanNames 只会设置一个元素 就是 返回的那个候选者beanName
+							//key 目标bean value 被选择的依赖bean    保存 依赖关系
 							registerDependentBeans(beanName, autowiredBeanNames);
 							if (autowiredBeanNames.size() == 1) {
 								String autowiredBeanName = autowiredBeanNames.iterator().next();
 								if (beanFactory.containsBean(autowiredBeanName) &&
 										beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+									//保存捷径对象 这样在下一次 寻找依赖的时候就能直接定位到对象
 									this.cachedFieldValue = new ShortcutDependencyDescriptor(
 											desc, autowiredBeanName, field.getType());
 								}
@@ -644,6 +660,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
+				//核心的 设置属性
 				field.set(bean, value);
 			}
 		}
@@ -679,6 +696,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				arguments = resolveCachedArguments(beanName);
 			}
 			else {
+				//获取该方法需要的所有参数类型
 				Class<?>[] paramTypes = method.getParameterTypes();
 				arguments = new Object[paramTypes.length];
 				DependencyDescriptor[] descriptors = new DependencyDescriptor[paramTypes.length];
@@ -686,11 +704,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				for (int i = 0; i < arguments.length; i++) {
+					//记录该方法参数下标
 					MethodParameter methodParam = new MethodParameter(method, i);
 					DependencyDescriptor currDesc = new DependencyDescriptor(methodParam, this.required);
 					currDesc.setContainingClass(bean.getClass());
 					descriptors[i] = currDesc;
 					try {
+						//解析获取 该方法的所有 参数 并设置到参数列表之后就可以调用该方法
 						Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
 						if (arg == null && !this.required) {
 							arguments = null;

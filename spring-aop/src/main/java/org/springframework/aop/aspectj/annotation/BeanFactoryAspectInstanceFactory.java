@@ -40,6 +40,8 @@ import org.springframework.util.ClassUtils;
  * @since 2.0
  * @see org.springframework.beans.factory.BeanFactory
  * @see LazySingletonAspectInstanceFactoryDecorator
+ *
+ * 		创建aop对象的实例工厂
  */
 @SuppressWarnings("serial")
 public class BeanFactoryAspectInstanceFactory implements MetadataAwareAspectInstanceFactory, Serializable {

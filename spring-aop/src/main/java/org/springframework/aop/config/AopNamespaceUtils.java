@@ -58,7 +58,7 @@ public abstract class AopNamespaceUtils {
 
 		BeanDefinition beanDefinition = AopConfigUtils.registerAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
-		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		ecessary(parserContext.getRegistry(), sourceElement);
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
@@ -79,17 +79,24 @@ public abstract class AopNamespaceUtils {
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
+	/**
+	 * 当使用注解触发AOP的时候就会进入这里
+	 * @param parserContext
+	 * @param sourceElement
+	 */
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
+		//这里先将 能处理aop的类注册到 bd 容器中
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		//从element 上解析2个属性 并设置到处理aop 的 bd 上
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
 	/**
-	 * 根据情况进行代理
+	 * 从element上解析某些属性并设置到处理aop的 bd上
 	 * @param registry
 	 * @param sourceElement
 	 */
@@ -98,18 +105,20 @@ public abstract class AopNamespaceUtils {
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			//这里代表 设置了 proxy-target-class-attribute
 			if (proxyTargetClass) {
+				//这里就是给处理aop 的 bd 增加对应的属性(设置了target-class 会使用CGLIB 进行代理)
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			//代表设置了expose-proxy-attribute
 			if (exposeProxy) {
+				//同上
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}
 	}
 
 	/**
-	 * 判断是否需要注册组件
+	 * 注册组件到上下文对象中
 	 * @param beanDefinition
 	 * @param parserContext
 	 */

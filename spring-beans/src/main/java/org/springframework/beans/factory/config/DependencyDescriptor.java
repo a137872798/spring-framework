@@ -393,6 +393,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 			}
 		}
 		else {
+			//针对 method 注入的逻辑
 			return obtainMethodParameter().getNestedParameterType();
 		}
 	}

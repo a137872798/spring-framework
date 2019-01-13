@@ -99,6 +99,7 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 	 * create an AOP proxy with {@code this} as an argument.
 	 */
 	protected final synchronized AopProxy createAopProxy() {
+		//如果是非活跃状态就修改为活跃状态
 		if (!this.active) {
 			activate();
 		}
@@ -108,6 +109,7 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 	/**
 	 * Activate this proxy configuration.
 	 * @see AdvisedSupportListener#activated
+	 * 		当修改为活跃状态时 触发监听器
 	 */
 	private void activate() {
 		this.active = true;

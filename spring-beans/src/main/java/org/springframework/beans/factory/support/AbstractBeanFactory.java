@@ -670,24 +670,35 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		return isTypeMatch(name, ResolvableType.forRawClass(typeToMatch));
 	}
 
+	/**
+	 * 尝试去获取bean 的类型  根据传入的beanName
+	 * @param name the name of the bean to query
+	 * @return
+	 * @throws NoSuchBeanDefinitionException
+	 */
 	@Override
 	@Nullable
 	public Class<?> getType(String name) throws NoSuchBeanDefinitionException {
 		String beanName = transformedBeanName(name);
 
 		// Check manually registered singletons.
+		// 不为null 是2种情况 该bean 正在创建 或者创建完成
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
 			if (beanInstance instanceof FactoryBean && !BeanFactoryUtils.isFactoryDereference(name)) {
+				//返回工厂bean 的 创建对象的 类型
 				return getTypeForFactoryBean((FactoryBean<?>) beanInstance);
 			}
+			//这里设置了类型
 			else {
 				return beanInstance.getClass();
 			}
 		}
 
 		// No singleton instance found -> check bean definition.
+		// 代表 依赖的 bean 还没有创建
 		BeanFactory parentBeanFactory = getParentBeanFactory();
+		//尝试从父工厂中获取
 		if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 			// No bean definition found in this factory -> delegate to parent.
 			return parentBeanFactory.getType(originalBeanName(name));
@@ -700,6 +711,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
 		if (dbd != null && !BeanFactoryUtils.isFactoryDereference(name)) {
 			RootBeanDefinition tbd = getMergedBeanDefinition(dbd.getBeanName(), dbd.getBeanDefinition(), mbd);
+			//尝试获取 未初始化bean的准确类型   可以认为就是获取bd 中的class 属性 其他少数情况可以不考虑 (比如 没有设置class 属性)
 			Class<?> targetClass = predictBeanType(dbd.getBeanName(), tbd);
 			if (targetClass != null && !FactoryBean.class.isAssignableFrom(targetClass)) {
 				return targetClass;

@@ -512,6 +512,8 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 	/**
 	 * Key for use with the converter cache.
+	 *
+	 * 使用转换的 目标类型和 源类型 来生成唯一的 转换对象
 	 */
 	private static final class ConverterCacheKey implements Comparable<ConverterCacheKey> {
 

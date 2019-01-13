@@ -222,9 +222,12 @@ public abstract class AopUtils {
 	 * @param hasIntroductions whether or not the advisor chain
 	 * for this bean includes any introductions
 	 * @return whether the pointcut can apply on any method
+	 *
+	 * 		判断给定的 advisor 是否能够给处理给定的 bean  这个匹配是 aspect下的express 实现的 先不看了
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+		//这里的 classFilter 也就是 express
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
@@ -281,8 +284,11 @@ public abstract class AopUtils {
 	 * @param hasIntroductions whether or not the advisor chain for this bean includes
 	 * any introductions
 	 * @return whether the pointcut can apply on any method
+	 *
+	 * 		一般使用的  BeforePointcut
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		//这里先不考虑
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
@@ -303,14 +309,20 @@ public abstract class AopUtils {
 	 * @param clazz the target class
 	 * @return sublist of Advisors that can apply to an object of the given class
 	 * (may be the incoming List as-is)
+	 *
+	 * 		从所有增强对象中筛选出能对该class对象起作用的增强对象
 	 */
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+		//不存在增强对象就不用处理
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
+
+		//下面2种情况是不同的
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
+				//代表匹配的 增强对象
 				eligibleAdvisors.add(candidate);
 			}
 		}
@@ -320,6 +332,7 @@ public abstract class AopUtils {
 				// already processed
 				continue;
 			}
+			//这里是 判断 非introductionAdvisor 能否生效
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

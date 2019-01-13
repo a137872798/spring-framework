@@ -293,6 +293,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
 	 *
+	 * 	看来无论基于哪种aop 实现 核心都是在这里 同时 该 类是实现了 Smart接口的 方法
 	 * 	aopCreator 对象 对生成的bean 对象做了后置处理
 	 */
 	@Override
@@ -300,6 +301,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (bean != null) {
 			//根据情况处理beanName  (如果 是 实现了 BeanFactory的bd 对象 就 增加前缀)
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			//如果没找到的情况就 开始包装
 			if (!this.earlyProxyReferences.contains(cacheKey)) {
 				//如果需要包装就返回包装对象
 				return wrapIfNecessary(bean, beanName, cacheKey);
@@ -350,21 +352,22 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		//判断是否是基础类(本身就是aop相关的类或者 aop相关接口的实现类) 或者 是否 beanName 尾部设置了.ORIGINAL 设置了 就不处理
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
 		// Create proxy if we have advice.
-		// 这里返回了 针对该bean 使用的 advice对象
+		// 这里返回了 针对该bean 使用的 advice对象(通知对象)
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			//将beanName 保存到需要被编织的容器中
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
-			//应该是利用CGLIB 生成代理对象
+			//这里根据情况 判断是使用CGLIB or JDK 动态代理生成 代理对象
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
-			//设置 代理对象容器
+			//将 原始bean 的 名字 与 生成的代理类对象关联起来
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}
@@ -456,21 +459,24 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * already pre-configured to access the bean
 	 * @return the AOP proxy for the bean
 	 * @see #buildAdvisors
+	 *
+	 * 		specificInterceptors 就是针对该bean的  Advisor对象
 	 */
 	protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
 
-		//如果当前工厂是可配置工厂  将当前类 以 特殊类的形式暴露出来 也就是告诉别人该bean 是被aop加工过的  也就是设置originalTargetClass属性
+		//如果当前工厂是可配置工厂  将加工前的bean对象 以originalTargetClass 为key 添加进去
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
-		//创建一个代理工厂对象
+		//创建一个代理工厂对象 将aop的相关处理都封装到这个对象中 copyFrom 就是拷贝一些属性
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
 		//代表 代理的范围    代理接口就代表是 JDK 动态代理 如果是 整个类就是 CGLIB
 		if (!proxyFactory.isProxyTargetClass()) {
+			//就是获取bd 上的 preserveTargetClass 是否为true
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
 			}
@@ -484,6 +490,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
+		//暂时是空实现 应该是给用户自定义
 		customizeProxyFactory(proxyFactory);
 
 		proxyFactory.setFrozen(this.freezeProxy);
@@ -533,11 +540,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
 		// Handle prototypes correctly...
+		// 查看这里是否还有其他拦截器
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
 		List<Object> allInterceptors = new ArrayList<>();
 		if (specificInterceptors != null) {
 			allInterceptors.addAll(Arrays.asList(specificInterceptors));
+			//存在公有拦截器就加入到拦截器列表中
 			if (commonInterceptors.length > 0) {
 				if (this.applyCommonInterceptorsFirst) {
 					allInterceptors.addAll(0, Arrays.asList(commonInterceptors));
@@ -556,6 +565,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		Advisor[] advisors = new Advisor[allInterceptors.size()];
 		for (int i = 0; i < allInterceptors.size(); i++) {
+			//将每个 advisor包装后返回
 			advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
 		}
 		return advisors;

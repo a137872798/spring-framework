@@ -69,7 +69,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 
 	/**
-	 * 这里 寻找需要进行动态代理的对象
+	 * 这里 根据指定的beanName 匹配的advisor对象
 	 * @param beanClass the class of the bean to advise
 	 * @param beanName the name of the bean
 	 * @param targetSource
@@ -80,6 +80,13 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
 
+		//获取 通知对象
+		//1.获取所有bd 中实现advisor接口的 bean
+		//2.获取所有bd 下带有@Aspect注解的 bean
+		//3.将携带@Aspect注解的类方法中携带 aop相关注解的 信息抽象成对应的advisor对象
+		//4.根据beanClass 与express进行匹配找到符合条件的advisor
+		//5.有需要的话增加一个 默认的 advisor对象 这个对象没有实际功能
+		//6.排序
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
 			//返回null 代表不需要处理
@@ -102,7 +109,8 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * 		每個生成的對象 都会触发
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-		//获取 候选者列表  就是bean 的类型是 Advisor子类的
+		//获取 候选者列表  就是bean 的类型是 Advisor子类的    AnnotationAwareAspectJAutoProxyCreator类重写了这个方法还从所有bd中找到被 @Aspect修饰的类 并将包含aop相关注解的方法
+		//抽象成对应的advisor对象
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		//这里获取所有的加工对象 比如 before 等  当前传入的bean 就是判断是否需要被代理的对象 只要符合<aop:pointcut> 的 express 就可以进行代理
 		//比如AfterReturningAdvice
@@ -110,6 +118,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		//扩充 应该是要什么固定的  编织对象吧  在链表首部(这个list 是linkedList) 添加 DefaultPointcutAdvisor
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
+			//将符合条件的 多个advisor 进行排序后返回
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
 		return eligibleAdvisors;

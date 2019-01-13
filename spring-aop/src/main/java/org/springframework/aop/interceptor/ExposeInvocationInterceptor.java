@@ -39,6 +39,9 @@ import org.springframework.core.PriorityOrdered;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
+ *
+ * 		该对象是 对bean 进行aop 处理时找到所有advisor 对象 然后将该对象记录在首部  这个对象调用invoke时 会将当前的MethodInvocation 保存到本地变量中
+ * 	    用户可以通过调用currentInvocation 获取MethodInvocation  但是MethodInvocation 是aopalliance 的类 还不知道怎么用
  */
 @SuppressWarnings("serial")
 public final class ExposeInvocationInterceptor implements MethodInterceptor, PriorityOrdered, Serializable {

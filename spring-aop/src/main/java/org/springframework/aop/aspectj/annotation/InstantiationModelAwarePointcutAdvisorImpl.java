@@ -80,13 +80,26 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 	private Boolean isAfterAdvice;
 
 
+	/**
+	 * 创建 Advisor对象的核心逻辑  根据传入的 Pointcut对象 这个对象内部已经包含了 express 也就是切点
+	 * @param declaredPointcut
+	 * @param aspectJAdviceMethod
+	 * @param aspectJAdvisorFactory
+	 * @param aspectInstanceFactory
+	 * @param declarationOrder
+	 * @param aspectName
+	 */
 	public InstantiationModelAwarePointcutAdvisorImpl(AspectJExpressionPointcut declaredPointcut,
+			//方法 就是对原对象增强的逻辑  order可以理解为 advisor的 下标 (因为有多个)
 			Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
 			MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
 
 		this.declaredPointcut = declaredPointcut;
+		//获取 aspect类对象
 		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
+		//获取 进行增强的方法
 		this.methodName = aspectJAdviceMethod.getName();
+		//获取该方法需要的参数
 		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
 		this.aspectJAdviceMethod = aspectJAdviceMethod;
 		this.aspectJAdvisorFactory = aspectJAdvisorFactory;
@@ -94,8 +107,10 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 		this.declarationOrder = declarationOrder;
 		this.aspectName = aspectName;
 
+		//如果是懒加载
 		if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// Static part of the pointcut is a lazy type.
+			// 这里的组合其实就是使用了 一个 内部包含2个 methodMatcher 2个classFilter 的类
 			Pointcut preInstantiationPointcut = Pointcuts.union(
 					aspectInstanceFactory.getAspectMetadata().getPerClausePointcut(), this.declaredPointcut);
 

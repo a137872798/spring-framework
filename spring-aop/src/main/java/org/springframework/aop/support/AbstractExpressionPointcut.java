@@ -18,6 +18,7 @@ package org.springframework.aop.support;
 
 import java.io.Serializable;
 
+import org.springframework.aop.ClassFilter;
 import org.springframework.lang.Nullable;
 
 /**
@@ -94,4 +95,8 @@ public abstract class AbstractExpressionPointcut implements ExpressionPointcut, 
 		return this.expression;
 	}
 
+	@Override
+	public ClassFilter getClassFilter() {
+		return null;
+	}
 }
