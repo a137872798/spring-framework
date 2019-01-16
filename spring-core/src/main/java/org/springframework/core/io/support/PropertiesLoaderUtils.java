@@ -79,6 +79,8 @@ public abstract class PropertiesLoaderUtils {
 	 * @param resource the resource to load from
 	 * @param persister the PropertiesPersister to use
 	 * @throws IOException in case of I/O errors
+	 *
+	 * 		加载properties 文件的核心逻辑
 	 */
 	static void fillProperties(Properties props, EncodedResource resource, PropertiesPersister persister)
 			throws IOException {
@@ -86,9 +88,11 @@ public abstract class PropertiesLoaderUtils {
 		InputStream stream = null;
 		Reader reader = null;
 		try {
+			//获取文件名
 			String filename = resource.getResource().getFilename();
 			if (filename != null && filename.endsWith(XML_FILE_EXTENSION)) {
 				stream = resource.getInputStream();
+				//以xml 格式进行解析
 				persister.loadFromXml(props, stream);
 			}
 			else if (resource.requiresReader()) {
@@ -97,6 +101,7 @@ public abstract class PropertiesLoaderUtils {
 			}
 			else {
 				stream = resource.getInputStream();
+				//核心就是直接通过prop 对输入流进行读取
 				persister.load(props, stream);
 			}
 		}

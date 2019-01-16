@@ -47,7 +47,7 @@ public abstract class PropertiesLoaderSupport {
 	protected Properties[] localProperties;
 
 	protected boolean localOverride = false;
-	PropertyOverrideConfigurer
+
 	@Nullable
 	private Resource[] locations;
 

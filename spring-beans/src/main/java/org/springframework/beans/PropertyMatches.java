@@ -45,7 +45,6 @@ public abstract class PropertyMatches {
 	/** Default maximum property distance: 2. */
 	public static final int DEFAULT_MAX_DISTANCE = 2;
 
-
 	// Static factory methods
 
 	/**

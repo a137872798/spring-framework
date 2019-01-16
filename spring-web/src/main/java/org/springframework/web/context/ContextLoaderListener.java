@@ -33,6 +33,8 @@ import javax.servlet.ServletContextListener;
  * @since 17.02.2003
  * @see #setContextInitializers
  * @see org.springframework.web.WebApplicationInitializer
+ *
+ * 		servlet 初始化和销毁的监听器 通过 监听servlet 生命周期 同步初始化/销毁 WebApplicationContext
  */
 public class ContextLoaderListener extends ContextLoader implements ServletContextListener {
 
@@ -89,6 +91,8 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 * @param context the application context to manage
 	 * @see #contextInitialized(ServletContextEvent)
 	 * @see #contextDestroyed(ServletContextEvent)
+	 *
+	 * 根据传入的WebApplicationContext 进行初始化 已经包含了 该引用 在 监听到servlet 初始化时 就不需要 创建新的WebApplicationContext了
 	 */
 	public ContextLoaderListener(WebApplicationContext context) {
 		super(context);
@@ -97,6 +101,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 	/**
 	 * Initialize the root web application context.
+	 * 根据监听到的事件初始化 WebApplicationContext
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -106,9 +111,11 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 	/**
 	 * Close the root web application context.
+	 * 根据监听到的事件销毁 WebApplicationContext
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		// 根据指定的 servletContext 来关闭 web上下文对象  看来针对一个 servlet 的启动可能会创建多个 web 上下文对象
 		closeWebApplicationContext(event.getServletContext());
 		ContextCleanupListener.cleanupAttributes(event.getServletContext());
 	}

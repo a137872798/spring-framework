@@ -251,7 +251,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 					setActiveProfiles(StringUtils.commaDelimitedListToStringArray(
 							StringUtils.trimAllWhitespace(profiles)));
 				}
-			}WebApplicationContext
+			}
 			return this.activeProfiles;
 		}
 	}
