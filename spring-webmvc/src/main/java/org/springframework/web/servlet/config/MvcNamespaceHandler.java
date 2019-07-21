@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Jeremy Grelle
  * @author Sebastien Deleuze
  * @since 3.0
+ * 该类是用于解析 mvc 命名空间下的相关xml标签的
  */
 public class MvcNamespaceHandler extends NamespaceHandlerSupport {
 

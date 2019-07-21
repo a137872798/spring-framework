@@ -47,6 +47,7 @@ import org.springframework.web.util.WebUtils;
  * @author Brian Clozel
  * @author Markus Malkusch
  * @since 2.0
+ * 在mvc 中使用的 req 对象  ArgumentResolver 就是处理这种类型的 req 对象 NativeWebRequest 接口是用来返回内部的 req resp 的
  */
 public class ServletWebRequest extends ServletRequestAttributes implements NativeWebRequest {
 

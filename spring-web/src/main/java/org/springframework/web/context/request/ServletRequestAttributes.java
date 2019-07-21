@@ -40,6 +40,7 @@ import org.springframework.web.util.WebUtils;
  * @since 2.0
  * @see javax.servlet.ServletRequest#getAttribute
  * @see javax.servlet.http.HttpSession#getAttribute
+ * 该属性会根据当前的 scope 执行不同的逻辑
  */
 public class ServletRequestAttributes extends AbstractRequestAttributes {
 
@@ -59,6 +60,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 		immutableValueTypes.add(String.class);
 	}
 
+	// 该类内部维护了 req res session 属性
 
 	private final HttpServletRequest request;
 
@@ -109,9 +111,11 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 	/**
 	 * Exposes the {@link HttpSession} that we're wrapping.
 	 * @param allowCreate whether to allow creation of a new session if none exists yet
+	 *                    从 reqAttribute中 获取 会话对象
 	 */
 	@Nullable
 	protected final HttpSession getSession(boolean allowCreate) {
+		// 判断 isRequestActive 标识 是否为true 代表 该次请求中 request 属性还能否被访问
 		if (isRequestActive()) {
 			HttpSession session = this.request.getSession(allowCreate);
 			this.session = session;
@@ -120,6 +124,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 		else {
 			// Access through stored session reference, if any...
 			HttpSession session = this.session;
+			// 为 null 的情况下 才尝试从 request 中获取
 			if (session == null) {
 				if (allowCreate) {
 					throw new IllegalStateException(
@@ -141,8 +146,15 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 	}
 
 
+	/**
+	 * 从attr中获取属性
+	 * @param name the name of the attribute
+	 * @param scope the scope identifier
+	 * @return
+	 */
 	@Override
 	public Object getAttribute(String name, int scope) {
+		// 如果scope 是req 代表从 req 中获取相关属性
 		if (scope == SCOPE_REQUEST) {
 			if (!isRequestActive()) {
 				throw new IllegalStateException(
@@ -151,6 +163,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 			return this.request.getAttribute(name);
 		}
 		else {
+			// 否则从 session 中获取属性
 			HttpSession session = getSession(false);
 			if (session != null) {
 				try {
@@ -268,6 +281,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 	/**
 	 * Update all accessed session attributes through {@code session.setAttribute}
 	 * calls, explicitly indicating to the container that they might have been modified.
+	 * 一般当请求标记完成时 上层会调用该方法
 	 */
 	@Override
 	protected void updateAccessedSessionAttributes() {

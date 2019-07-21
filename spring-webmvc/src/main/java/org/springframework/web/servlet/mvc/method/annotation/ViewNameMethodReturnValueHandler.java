@@ -41,6 +41,7 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 将返回值 处理成视图对象
  */
 public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
@@ -70,6 +71,11 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	}
 
 
+	/**
+	 * 针对 void 或者 CharSequence 都代表支持
+	 * @param returnType the method return type to check
+	 * @return
+	 */
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
 		Class<?> paramType = returnType.getParameterType();
@@ -80,9 +86,12 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
+		// 如果返回值为 void 就不做任何处理
 		if (returnValue instanceof CharSequence) {
 			String viewName = returnValue.toString();
+			// 设置视图名
 			mavContainer.setViewName(viewName);
+			// 如果以 redirect： 开头 就代表需要进行重定向  这里没有设置 setRequestHandled 代表会走mvc 的 View 那一套
 			if (isRedirectViewName(viewName)) {
 				mavContainer.setRedirectModelScenario(true);
 			}

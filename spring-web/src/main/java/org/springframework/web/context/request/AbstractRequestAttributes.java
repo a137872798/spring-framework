@@ -29,12 +29,16 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @since 2.0
  * @see #requestCompleted()
+ * req Attr 的骨架类 具备 存取数据的能力
  */
 public abstract class AbstractRequestAttributes implements RequestAttributes {
 
 	/** Map from attribute name String to destruction callback Runnable. */
 	protected final Map<String, Runnable> requestDestructionCallbacks = new LinkedHashMap<>(8);
 
+	/**
+	 * 代表当前 request 对象是否还有用 （请求处理完了就没用了）
+	 */
 	private volatile boolean requestActive = true;
 
 
@@ -42,9 +46,12 @@ public abstract class AbstractRequestAttributes implements RequestAttributes {
 	 * Signal that the request has been completed.
 	 * <p>Executes all request destruction callbacks and updates the
 	 * session attributes that have been accessed during request processing.
+	 * 标记本次请求已经完成
 	 */
 	public void requestCompleted() {
+		// 执行所有回调函数
 		executeRequestDestructionCallbacks();
+		// 更新 sessionAttribute 子类实现
 		updateAccessedSessionAttributes();
 		this.requestActive = false;
 	}

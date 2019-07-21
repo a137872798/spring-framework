@@ -171,6 +171,7 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 
 	private void initAllowHeader() {
 		Collection<String> allowedMethods;
+		// 如果 初始化时 没有设置支持的方法 将所有 Http 支持的方法添加到容器中
 		if (this.supportedMethods == null) {
 			allowedMethods = new ArrayList<>(HttpMethod.values().length - 1);
 			for (HttpMethod method : HttpMethod.values()) {
@@ -437,6 +438,7 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	 * @param response current HTTP response
 	 * @param cacheSeconds positive number of seconds into the future that the
 	 * response should be cacheable for, 0 to prevent caching
+	 *                     为 res 设置缓存时间
 	 */
 	@SuppressWarnings("deprecation")
 	protected final void applyCacheSeconds(HttpServletResponse response, int cacheSeconds) {

@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 23.10.2003
  * @see ApplicationObjectSupport#getMessageSourceAccessor
+ * MessageSource 一般是  ApplicationContext
  */
 public class MessageSourceAccessor {
 

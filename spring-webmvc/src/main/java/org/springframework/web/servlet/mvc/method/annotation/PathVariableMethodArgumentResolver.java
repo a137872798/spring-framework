@@ -61,6 +61,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Arjen Poutsma
  * @author Juergen Hoeller
  * @since 3.1
+ * 从请求路径上获取参数
  */
 public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethodArgumentResolver
 		implements UriComponentsContributor {

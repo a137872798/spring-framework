@@ -137,6 +137,7 @@ import org.springframework.web.util.WebUtils;
  * @see #setContextConfigLocation
  * @see #setContextInitializerClasses
  * @see #setNamespace
+ * 实现 ApplicationContextAware 使得 servlet 具备 访问整个spring 容器的能力
  */
 @SuppressWarnings("serial")
 public abstract class FrameworkServlet extends HttpServletBean implements ApplicationContextAware {
@@ -285,6 +286,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #initWebApplicationContext
 	 * @see #configureAndRefreshWebApplicationContext
 	 * @see org.springframework.web.WebApplicationInitializer
+	 * 可以通过 WebApplicationContext 来尝试初始化 servlet 对象
 	 */
 	public FrameworkServlet(WebApplicationContext webApplicationContext) {
 		this.webApplicationContext = webApplicationContext;
@@ -516,6 +518,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	/**
 	 * Overridden method of {@link HttpServletBean}, invoked after any bean properties
 	 * have been set. Creates this servlet's WebApplicationContext.
+	 * 覆盖父类有关于 servletBean 的初始化
 	 */
 	@Override
 	protected final void initServletBean() throws ServletException {
@@ -523,10 +526,12 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (logger.isInfoEnabled()) {
 			logger.info("Initializing Servlet '" + getServletName() + "'");
 		}
+		// 记录启动时长
 		long startTime = System.currentTimeMillis();
 
 		try {
 			this.webApplicationContext = initWebApplicationContext();
+			// 初始化模板 servlet 目前是 noop
 			initFrameworkServlet();
 		}
 		catch (ServletException | RuntimeException ex) {
@@ -555,17 +560,21 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #FrameworkServlet(WebApplicationContext)
 	 * @see #setContextClass
 	 * @see #setContextConfigLocation
+	 * 初始化 webApplicationContext 对象
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		// 尝试获取  ServletContext 中的 WebApplicationContext.ROOT 属性 一般是不存在的
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
 
+		// 如果在初始化该对象时 已经传入了 上下文对象
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
 			if (wac instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) wac;
+				// 非活跃状态 就是判断 该容器是否至少 refresh 过一次 （refresh 代表着容器内部的元素都完成了初始化）
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
@@ -574,6 +583,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 						// the root application context (if any; may be null) as the parent
 						cwac.setParent(rootContext);
 					}
+					// 该方法的核心就是为传入的 WebApplicationContext 设置 ServletContext 以及ServletConfig 属性 之后再调用 refresh() 构建bean对象
 					configureAndRefreshWebApplicationContext(cwac);
 				}
 			}
@@ -583,13 +593,16 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// has been registered in the servlet context. If one exists, it is assumed
 			// that the parent context (if any) has already been set and that the
 			// user has performed any initialization such as setting the context id
+			// 尝试从ServletContext 获取 这里使用的属性名要通过外部来设置
 			wac = findWebApplicationContext();
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 新构建一个 基于xml的上下文对象 并配置servlet相关属性 以及初始化容器
 			wac = createWebApplicationContext(rootContext);
 		}
 
+		// 如果没有收到刷新事件 手动触发子类的刷新 该对象进行刷新事件后只是针对 spring 容器这个概念 而 于web相关的刷新工作由子类实现
 		if (!this.refreshEventReceived) {
 			// Either the context is not a ConfigurableApplicationContext with refresh
 			// support or the context injected at construction time had already been
@@ -599,6 +612,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		// 将本 servlet 设置到 servletContext 中 也就是将 wrapper 的信息设置到 context 中
 		if (this.publishContext) {
 			// Publish the context as a servlet context attribute.
 			String attrName = getServletContextAttributeName();
@@ -646,8 +660,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @param parent the parent ApplicationContext to use, or {@code null} if none
 	 * @return the WebApplicationContext for this servlet
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
+	 * 构建一个新的上下文对象
 	 */
 	protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
+		// 默认使用 XmlWebApplicationContext 代表从xml 中解析出上下文对象
 		Class<?> contextClass = getContextClass();
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException(
@@ -660,6 +676,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		wac.setEnvironment(getEnvironment());
 		wac.setParent(parent);
+		// 获取配置文件路径
 		String configLocation = getContextConfigLocation();
 		if (configLocation != null) {
 			wac.setConfigLocation(configLocation);
@@ -669,6 +686,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		return wac;
 	}
 
+	/**
+	 * 初始化 容器对象  那么 上下文对象又是在什么时候完成初始化并传入的呢??? 很可能只是传入一个没有设置属性的空上下文
+	 * @param wac
+	 */
 	protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac) {
 		if (ObjectUtils.identityToString(wac).equals(wac.getId())) {
 			// The application context id is still set to its original default value
@@ -683,21 +704,28 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		// 为WebApplicationContext 容器 设置 servletContext 和 servletConfig 属性 这2个属性由子类设置
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
+		// 应该是规定了 WebApplicationContext 的作用域
 		wac.setNamespace(getNamespace());
+		// 设置上下文监听器对象
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
 		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
 		// use in any post-processing or initialization that occurs below prior to #refresh
+		// 获取上下文的 环境对象
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
+			// 初始化环境对象
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
 
+		// 开放的钩子 noop
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		// 初始化bean 对象
 		wac.refresh();
 	}
 
@@ -743,8 +771,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #createWebApplicationContext
 	 * @see #postProcessWebApplicationContext
 	 * @see ConfigurableApplicationContext#refresh()
+	 * 初始化上下文对象
 	 */
 	protected void applyInitializers(ConfigurableApplicationContext wac) {
+		// 获取 初始化类名 默认为null
 		String globalClassNames = getServletContext().getInitParameter(ContextLoader.GLOBAL_INITIALIZER_CLASSES_PARAM);
 		if (globalClassNames != null) {
 			for (String className : StringUtils.tokenizeToStringArray(globalClassNames, INIT_PARAM_DELIMITERS)) {
@@ -834,6 +864,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * <p>The default implementation calls {@link #onRefresh},
 	 * triggering a refresh of this servlet's context-dependent state.
 	 * @param event the incoming ApplicationContext event
+	 *              代表接收到了容器刷新事件
 	 */
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		this.refreshEventReceived = true;
@@ -983,20 +1014,27 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * Process this request, publishing an event regardless of the outcome.
 	 * <p>The actual event handling is performed by the abstract
 	 * {@link #doService} template method.
+	 * 处理请求
 	 */
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		// 用于计算启动时间
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
 
+		// 获取线程绑定的上下文对象 并将本次请求的些参数设置到该线程上 这样随时可以通过访问当前线程获取绑定的参数
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
+		// LocaleContext 内部只是简单的维护了 当前request#locale 属性
 		LocaleContext localeContext = buildLocaleContext(request);
 
+		// 类似于上面 用来保存 RequestAttributes 这里取出来的是本线程针对上次请求保存的  需要更新成本次的
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 
+		// 为本servletRequest 对象 设置一个 WebAsyncManager 对象
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+		// 为管理器设置拦截器对象
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
 
 		initContextHolders(request, localeContext, requestAttributes);
@@ -1014,11 +1052,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 
 		finally {
+			// 使用之前维护的上下文属性重置上下文
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
 			if (requestAttributes != null) {
+				// 代表不能再操纵 request
 				requestAttributes.requestCompleted();
 			}
 			logResult(request, response, failureCause, asyncManager);
+			// 每次处理完一个请求后 会发出一个事件
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
@@ -1045,6 +1086,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @return the ServletRequestAttributes to bind, or {@code null} to preserve
 	 * the previously bound instance (or not binding any, if none bound before)
 	 * @see RequestContextHolder#setRequestAttributes
+	 *
+	 * 使用 req res 来构建 requestAttributes 属性
 	 */
 	@Nullable
 	protected ServletRequestAttributes buildRequestAttributes(HttpServletRequest request,
@@ -1134,6 +1177,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	private void publishRequestHandledEvent(HttpServletRequest request, HttpServletResponse response,
 			long startTime, @Nullable Throwable failureCause) {
 
+		// publishEvents 代表允许发布事件
 		if (this.publishEvents && this.webApplicationContext != null) {
 			// Whether or not we succeeded, publish an event.
 			long processingTime = System.currentTimeMillis() - startTime;
@@ -1194,18 +1238,30 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	/**
 	 * CallableProcessingInterceptor implementation that initializes and resets
 	 * FrameworkServlet's context holders, i.e. LocaleContextHolder and RequestContextHolder.
+	 * 该拦截器将请求 与 localeContext对象  requestContext 对象 绑定起来 （针对异步请求）
 	 */
 	private class RequestBindingInterceptor implements CallableProcessingInterceptor {
 
 		@Override
 		public <T> void preProcess(NativeWebRequest webRequest, Callable<T> task) {
+			// 该对象像是封装了 HttpServletRequest 以及 具备 RequestAttribute的职能
 			HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 			if (request != null) {
 				HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+				// 通过本次调用中的参数 来 初始化上下文对象
 				initContextHolders(request, buildLocaleContext(request),
 						buildRequestAttributes(request, response, null));
 			}
 		}
+
+		/**
+		 * 请求处理完后 清除本次绑定在线程上的 req res
+		 * @param webRequest
+		 * @param task the task for the current async request
+		 * @param concurrentResult the result of concurrent processing, which could
+		 * be a {@link Throwable} if the {@code Callable} raised an exception
+		 * @param <T>
+		 */
 		@Override
 		public <T> void postProcess(NativeWebRequest webRequest, Callable<T> task, Object concurrentResult) {
 			HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);

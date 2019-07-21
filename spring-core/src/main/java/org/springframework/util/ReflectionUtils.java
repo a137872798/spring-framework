@@ -59,6 +59,7 @@ public abstract class ReflectionUtils {
 	 * Pre-built MethodFilter that matches all non-bridge non-synthetic methods
 	 * which are not declared on {@code java.lang.Object}.
 	 * @since 3.0.5
+	 * 代表该方法 不是桥接方法 也不属于 object 携带的方法
 	 */
 	public static final MethodFilter USER_DECLARED_METHODS =
 			(method -> (!method.isBridge() && !method.isSynthetic() && method.getDeclaringClass() != Object.class));
@@ -577,11 +578,13 @@ public abstract class ReflectionUtils {
 	 * @param mc the callback to invoke for each method
 	 * @param mf the filter that determines the methods to apply the callback to
 	 * @throws IllegalStateException if introspection fails
+	 * 针对某个 class 下的 所有方法执行一些 逻辑 methodFliter 代表 过滤掉某些方法 MethodCallback 代表对方法做处理
 	 */
 	public static void doWithMethods(Class<?> clazz, MethodCallback mc, @Nullable MethodFilter mf) {
 		// Keep backing up the inheritance hierarchy.
 		Method[] methods = getDeclaredMethods(clazz);
 		for (Method method : methods) {
+			// 匹配失败的method 不做处理
 			if (mf != null && !mf.matches(method)) {
 				continue;
 			}

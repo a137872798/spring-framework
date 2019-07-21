@@ -39,6 +39,7 @@ import org.springframework.web.method.ControllerAdviceBean;
  *
  * @author Rossen Stoyanchev
  * @since 4.2
+ * 针对 @RequestBody @ResponseBody 的增强链
  */
 class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyAdvice<Object> {
 

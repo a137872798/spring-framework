@@ -32,19 +32,29 @@ import org.springframework.web.context.request.NativeWebRequest;
  * @author Juergen Hoeller
  * @since 3.2
  * @param <V> the value type
+ *           异步请求任务对象
  */
 public class WebAsyncTask<V> implements BeanFactoryAware {
 
+	/**
+	 * 内部维护一个 回调对象
+	 */
 	private final Callable<V> callable;
 
 	private Long timeout;
 
+	/**
+	 * 执行异步请求的 线程池
+	 */
 	private AsyncTaskExecutor executor;
 
 	private String executorName;
 
 	private BeanFactory beanFactory;
 
+	/**
+	 * 超时回调
+	 */
 	private Callable<V> timeoutCallback;
 
 	private Callable<V> errorCallback;

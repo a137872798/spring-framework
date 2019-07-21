@@ -52,6 +52,8 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.web.servlet.handler.AbstractHandlerMapping
  * @see org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping
  * @see org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
+ * 该接口 意味着 可以根据 req 对象找到对应的 handler 以及 Inteceptor  spring mvc 内置了很多的 HandlerMapping 实现类 这样在初始化 DispatcherServlet 时 就会挨个尝试
+ * 生成 HandlerExecuteChain 对象 并返回第一个 处理链
  */
 public interface HandlerMapping {
 
@@ -134,6 +136,7 @@ public interface HandlerMapping {
 	 * @return a HandlerExecutionChain instance containing handler object and
 	 * any interceptors, or {@code null} if no mapping found
 	 * @throws Exception if there is an internal error
+	 * 根据 req 对象 找到合适的 handler 处理链 以及 匹配的 一组 拦截器
 	 */
 	@Nullable
 	HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception;

@@ -66,9 +66,13 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 通过消息转换器 解析 入参
  */
 public abstract class AbstractMessageConverterMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
+	/**
+	 * 支持对应的 httpmethod
+	 */
 	private static final Set<HttpMethod> SUPPORTED_METHODS =
 			EnumSet.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH);
 
@@ -77,6 +81,9 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 对应的消息转换器
+	 */
 	protected final List<HttpMessageConverter<?>> messageConverters;
 
 	protected final List<MediaType> allSupportedMediaTypes;
@@ -86,6 +93,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 	/**
 	 * Basic constructor with converters only.
+	 * 通过传入的消息转换器 初始化 该对象
 	 */
 	public AbstractMessageConverterMethodArgumentResolver(List<HttpMessageConverter<?>> converters) {
 		this(converters, null);
@@ -101,6 +109,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 		Assert.notEmpty(converters, "'messageConverters' must not be empty");
 		this.messageConverters = converters;
 		this.allSupportedMediaTypes = getAllSupportedMediaTypes(converters);
+		// 将 advice 增强器 初始化为链对象
 		this.advice = new RequestResponseBodyAdviceChain(requestResponseBodyAdvice);
 	}
 
@@ -159,15 +168,18 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @return the created method argument value
 	 * @throws IOException if the reading from the request fails
 	 * @throws HttpMediaTypeNotSupportedException if no suitable message converter is found
+	 * 将 req 传来的数据 使用消息转换器处理后返回   targetType 代表需要被转换的类型
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected <T> Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
 			Type targetType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
+		// 代表 req 的消息体类型
 		MediaType contentType;
 		boolean noContentType = false;
 		try {
+			// 获取消息体类型
 			contentType = inputMessage.getHeaders().getContentType();
 		}
 		catch (InvalidMediaTypeException ex) {
@@ -178,6 +190,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
 		}
 
+		// 获取 对应的 Controller 类
 		Class<?> contextClass = parameter.getContainingClass();
 		Class<T> targetClass = (targetType instanceof Class ? (Class<T>) targetType : null);
 		if (targetClass == null) {
@@ -185,6 +198,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			targetClass = (Class<T>) resolvableType.resolve();
 		}
 
+		// 获取请求方法
 		HttpMethod httpMethod = (inputMessage instanceof HttpRequest ? ((HttpRequest) inputMessage).getMethod() : null);
 		Object body = NO_VALUE;
 
@@ -192,12 +206,15 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 		try {
 			message = new EmptyBodyCheckingHttpInputMessage(inputMessage);
 
+			// 获取所有的转换器
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
 				Class<HttpMessageConverter<?>> converterType = (Class<HttpMessageConverter<?>>) converter.getClass();
 				GenericHttpMessageConverter<?> genericConverter =
 						(converter instanceof GenericHttpMessageConverter ? (GenericHttpMessageConverter<?>) converter : null);
+				// 判断 该消息转换器 能否处理该消息
 				if (genericConverter != null ? genericConverter.canRead(targetType, contextClass, contentType) :
 						(targetClass != null && converter.canRead(targetClass, contentType))) {
+					// 使用advice 进行增强处理后返回
 					if (message.hasBody()) {
 						HttpInputMessage msgToUse =
 								getAdvice().beforeBodyRead(message, parameter, targetType, converterType);
@@ -254,14 +271,19 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @param parameter the method parameter descriptor
 	 * @since 4.1.5
 	 * @see #isBindExceptionRequired
+	 * 判断参数是否需要进行校验
 	 */
 	protected void validateIfApplicable(WebDataBinder binder, MethodParameter parameter) {
 		Annotation[] annotations = parameter.getParameterAnnotations();
 		for (Annotation ann : annotations) {
+			// 如果参数携带 Validated注解
 			Validated validatedAnn = AnnotationUtils.getAnnotation(ann, Validated.class);
+			// 这里说明 如果 某个注解 是以 Valid 开头的 也会进行校验工作 这里应该是兼容 javax.Valid
 			if (validatedAnn != null || ann.annotationType().getSimpleName().startsWith("Valid")) {
 				Object hints = (validatedAnn != null ? validatedAnn.value() : AnnotationUtils.getValue(ann));
+				// 获取注解的判断条件
 				Object[] validationHints = (hints instanceof Object[] ? (Object[]) hints : new Object[] {hints});
+				// 使用binder 对象 进行校验
 				binder.validate(validationHints);
 				break;
 			}
@@ -304,6 +326,9 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	}
 
 
+	/**
+	 * 维护消息头 和 body
+	 */
 	private static class EmptyBodyCheckingHttpInputMessage implements HttpInputMessage {
 
 		private final HttpHeaders headers;

@@ -146,7 +146,8 @@ public class SpringValidatorAdapter implements SmartValidator, javax.validation.
 	 * Process the given JSR-303 ConstraintViolations, adding corresponding errors to
 	 * the provided Spring {@link Errors} object.
 	 * @param violations the JSR-303 ConstraintViolation results
-	 * @param errors the Spring errors object to register to
+	 * @param errors the Spring errors object to register
+	 *               当校验失败时 会将异常信息传入到 bindingresult中
 	 */
 	protected void processConstraintViolations(Set<ConstraintViolation<Object>> violations, Errors errors) {
 		for (ConstraintViolation<Object> violation : violations) {

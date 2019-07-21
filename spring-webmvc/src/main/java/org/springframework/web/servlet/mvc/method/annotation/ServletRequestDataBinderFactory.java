@@ -46,6 +46,7 @@ public class ServletRequestDataBinderFactory extends InitBinderDataBinderFactory
 
 	/**
 	 * Returns an instance of {@link ExtendedServletRequestDataBinder}.
+	 * 创建 DataBinder 对象  一个 DataBinder 只能绑定一个 对象
 	 */
 	@Override
 	protected ServletRequestDataBinder createBinderInstance(

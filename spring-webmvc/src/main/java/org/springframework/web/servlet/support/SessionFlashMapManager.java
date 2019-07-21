@@ -31,6 +31,7 @@ import org.springframework.web.util.WebUtils;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1.1
+ * 基于session 来实现 参数在不同请求间的传递
  */
 public class SessionFlashMapManager extends AbstractFlashMapManager {
 

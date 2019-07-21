@@ -69,6 +69,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Brian Clozel
  * @author Juergen Hoeller
  * @since 3.1
+ * 该对象使得 同时具备处理入参 和返回值的能力
  */
 public abstract class AbstractMessageConverterMethodProcessor extends AbstractMessageConverterMethodArgumentResolver
 		implements HandlerMethodReturnValueHandler {
@@ -98,6 +99,9 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	}
 
 
+	/**
+	 * 导航管理对象
+	 */
 	private final ContentNegotiationManager contentNegotiationManager;
 
 	private final PathExtensionContentNegotiationStrategy pathStrategy;

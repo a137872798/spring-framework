@@ -869,12 +869,16 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @since 3.1
 	 * @see #setValidator(Validator)
 	 * @see SmartValidator#validate(Object, Errors, Object...)
+	 * 对参数进行校验
 	 */
 	public void validate(Object... validationHints) {
+		// 获取待校验对象
 		Object target = getTarget();
 		Assert.state(target != null, "No target to validate");
+		// 获取绑定结果
 		BindingResult bindingResult = getBindingResult();
 		// Call each validator with the same binding result
+		// 获取所有校验器
 		for (Validator validator : getValidators()) {
 			if (!ObjectUtils.isEmpty(validationHints) && validator instanceof SmartValidator) {
 				((SmartValidator) validator).validate(target, bindingResult, validationHints);

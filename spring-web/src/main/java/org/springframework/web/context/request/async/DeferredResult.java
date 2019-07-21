@@ -51,6 +51,7 @@ import org.springframework.web.context.request.NativeWebRequest;
  * @author Rob Winch
  * @since 3.2
  * @param <T> the result type
+ *           针对异步请求的结果对象
  */
 public class DeferredResult<T> {
 

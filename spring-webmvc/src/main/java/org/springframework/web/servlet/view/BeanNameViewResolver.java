@@ -51,6 +51,7 @@ import org.springframework.web.servlet.ViewResolver;
  * @see XmlViewResolver
  * @see ResourceBundleViewResolver
  * @see UrlBasedViewResolver
+ * 根据 BeanName 来进行视图解析  优先级最低
  */
 public class BeanNameViewResolver extends WebApplicationObjectSupport implements ViewResolver, Ordered {
 
@@ -88,6 +89,7 @@ public class BeanNameViewResolver extends WebApplicationObjectSupport implements
 			// let's accept this as a non-match and allow for chaining as well...
 			return null;
 		}
+		// 从 beanFactory 中 找到对应的  bean 对象
 		return context.getBean(viewName, View.class);
 	}
 

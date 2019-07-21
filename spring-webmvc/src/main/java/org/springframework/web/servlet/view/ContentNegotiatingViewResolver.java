@@ -84,10 +84,14 @@ import org.springframework.web.servlet.ViewResolver;
  * @see ViewResolver
  * @see InternalResourceViewResolver
  * @see BeanNameViewResolver
+ * 导航视图解析器
  */
 public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 		implements ViewResolver, Ordered, InitializingBean {
 
+	/**
+	 * 内部维护一个 视图导航管理器
+	 */
 	@Nullable
 	private ContentNegotiationManager contentNegotiationManager;
 
@@ -217,6 +221,14 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 	}
 
 
+	/**
+	 * 解析 并生成视图对象  没有找到合适的 视图解析器对象时 就会尝试获取默认的 视图对象  而一定也是在 这里添加默认视图 控制 mvc框架返回的视图对象
+	 * @param viewName name of the view to resolve
+	 * @param locale the Locale in which to resolve the view.
+	 * ViewResolvers that support internationalization should respect this.
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	@Nullable
 	public View resolveViewName(String viewName, Locale locale) throws Exception {

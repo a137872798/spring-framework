@@ -57,6 +57,7 @@ import org.springframework.web.context.request.async.DeferredResult.DeferredResu
  * @see org.springframework.web.servlet.AsyncHandlerInterceptor
  * @see org.springframework.web.filter.OncePerRequestFilter#shouldNotFilterAsyncDispatch
  * @see org.springframework.web.filter.OncePerRequestFilter#isAsyncDispatch
+ * 异步处理的 核心类
  */
 public final class WebAsyncManager {
 
@@ -76,6 +77,9 @@ public final class WebAsyncManager {
 	private static Boolean taskExecutorWarning = true;
 
 
+	/**
+	 *  内部维护了 能够发起异步请求的 AsyncWebRequest 对象
+	 */
 	private AsyncWebRequest asyncWebRequest;
 
 	private AsyncTaskExecutor taskExecutor = DEFAULT_TASK_EXECUTOR;
@@ -252,6 +256,7 @@ public final class WebAsyncManager {
 	 * @throws Exception if concurrent processing failed to start
 	 * @see #getConcurrentResult()
 	 * @see #getConcurrentResultContext()
+	 * 将callable 封装成 异步 Task
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void startCallableProcessing(Callable<?> callable, Object... processingContext) throws Exception {

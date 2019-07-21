@@ -30,9 +30,14 @@ import org.springframework.web.context.request.WebRequest;
  * @see org.springframework.web.context.request.WebRequest#setAttribute
  * @see org.springframework.web.context.request.WebRequest#getAttribute
  * @see org.springframework.web.context.request.WebRequest#removeAttribute
+ * 用于绑定 req 和 会话的对象 便于 req 随时存取值  实现方式就是直接操作req 进行存储  是 tomcat 层实现的 在set 时 还传入了 scope 为 session 代表 针对req.getsession 处理
+ * 这样就实现了 会话隔离
  */
 public class DefaultSessionAttributeStore implements SessionAttributeStore {
 
+	/**
+	 * 属性名前缀 这样每个添加的属性都会携带该前缀 默认为 ""
+	 */
 	private String attributeNamePrefix = "";
 
 
@@ -46,6 +51,12 @@ public class DefaultSessionAttributeStore implements SessionAttributeStore {
 	}
 
 
+	/**
+	 * 保存属性
+	 * @param request the current request
+	 * @param attributeName the name of the attribute
+	 * @param attributeValue the attribute value to store
+	 */
 	@Override
 	public void storeAttribute(WebRequest request, String attributeName, Object attributeValue) {
 		Assert.notNull(request, "WebRequest must not be null");
@@ -80,6 +91,7 @@ public class DefaultSessionAttributeStore implements SessionAttributeStore {
 	 * @param request the current request
 	 * @param attributeName the name of the attribute
 	 * @return the attribute name in the backend session
+	 * 内部封装了 添加前缀的处理
 	 */
 	protected String getAttributeNameInSession(WebRequest request, String attributeName) {
 		return this.attributeNamePrefix + attributeName;

@@ -39,13 +39,21 @@ public class RequestMappingInfoHandlerMethodMappingNamingStrategy
 	public static final String SEPARATOR = "#";
 
 
+	/**
+	 * 生成 一个 用于 导航 handlerMethod 的 key
+	 * @param handlerMethod the handler method
+	 * @param mapping the mapping
+	 * @return
+	 */
 	@Override
 	public String getName(HandlerMethod handlerMethod, RequestMappingInfo mapping) {
+		// 直接获取注解的映射名
 		if (mapping.getName() != null) {
 			return mapping.getName();
 		}
 		StringBuilder sb = new StringBuilder();
 		String simpleTypeName = handlerMethod.getBeanType().getSimpleName();
+		// 类型 + "#" + 方法名 生成 key
 		for (int i = 0 ; i < simpleTypeName.length(); i++) {
 			if (Character.isUpperCase(simpleTypeName.charAt(i))) {
 				sb.append(simpleTypeName.charAt(i));

@@ -53,9 +53,14 @@ import org.springframework.util.CollectionUtils;
  * @see #setMappings
  * @see #setUrlMap
  * @see BeanNameUrlHandlerMapping
+ * 代表一个简单的 url handler 映射器  这里也没有做 urlMap 的填充 应该是交由子类来实现  该类 不属于 AbstractDetectingUrlHandlerMapping 的分支 也就是不具备自主发现handler 的能力
+ * 需要用户自己设置之类的
  */
 public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
+	/**
+	 * 明明父类已经存在 一个 映射的map 了 为什么这里又要单独维护一个map
+	 */
 	private final Map<String, Object> urlMap = new LinkedHashMap<>();
 
 
@@ -98,6 +103,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	/**
 	 * Calls the {@link #registerHandlers} method in addition to the
 	 * superclass's initialization.
+	 * 当父类 调用 setApplicationContext 时 会调用该方法
 	 */
 	@Override
 	public void initApplicationContext() throws BeansException {
@@ -118,6 +124,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 		else {
 			urlMap.forEach((url, handler) -> {
 				// Prepend with slash if not already present.
+				// url 必须使用 / 作为 开头
 				if (!url.startsWith("/")) {
 					url = "/" + url;
 				}
@@ -125,6 +132,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 				if (handler instanceof String) {
 					handler = ((String) handler).trim();
 				}
+				// 将结果注册到父类的容器中
 				registerHandler(url, handler);
 			});
 			if (logger.isDebugEnabled()) {

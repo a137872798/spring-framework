@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 2.0
  * @see ServletRequestAttributes
+ * 抽象出 一个 具备存取数据能力的 req 对象
  */
 public interface RequestAttributes {
 

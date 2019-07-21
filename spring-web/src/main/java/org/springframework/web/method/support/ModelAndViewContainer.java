@@ -46,21 +46,40 @@ import org.springframework.web.bind.support.SimpleSessionStatus;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 作为使用 Model 生成View  的 整个上下文对象
  */
 public class ModelAndViewContainer {
 
+	/**
+	 * 判断是 redirect 时 是否允许使用 defaultModel
+	 */
 	private boolean ignoreDefaultModelOnRedirect = false;
 
+	/**
+	 * 视图对象  如果实际类型是 String 就代表是 视图名
+	 */
 	@Nullable
 	private Object view;
 
+	/**
+	 * 默认的 model
+	 */
 	private final ModelMap defaultModel = new BindingAwareModelMap();
 
+	/**
+	 * redirect对应的 Model
+	 */
 	@Nullable
 	private ModelMap redirectModel;
 
+	/**
+	 * 是否返回 redirect视图 的标志
+	 */
 	private boolean redirectModelScenario = false;
 
+	/**
+	 * 本次结果的 HttpStatus
+	 */
 	@Nullable
 	private HttpStatus status;
 
@@ -68,8 +87,14 @@ public class ModelAndViewContainer {
 
 	private final Set<String> bindingDisabled = new HashSet<>(4);
 
+	/**
+	 * 设置 使用完 SessionAttribute 的 标志
+	 */
 	private final SessionStatus sessionStatus = new SimpleSessionStatus();
 
+	/**
+	 * 请求是否已经处理完成
+	 */
 	private boolean requestHandled = false;
 
 
@@ -136,6 +161,7 @@ public class ModelAndViewContainer {
 	 * The default model is used if {@code redirectModelScenario=false} or
 	 * there is no redirect model (i.e. RedirectAttributes was not declared as
 	 * a method argument) and {@code ignoreDefaultModelOnRedirect=false}.
+	 * 根据是否使用 default 返回不同的 model对象 defaultModel 和 redirectModel 的实现类是不同的
 	 */
 	public ModelMap getModel() {
 		if (useDefaultModel()) {
@@ -143,6 +169,7 @@ public class ModelAndViewContainer {
 		}
 		else {
 			if (this.redirectModel == null) {
+				// redirectModel只是一个普通的 ModelMap
 				this.redirectModel = new ModelMap();
 			}
 			return this.redirectModel;
@@ -211,6 +238,7 @@ public class ModelAndViewContainer {
 	 * not even for a subsequent {@code @ModelAttribute} declaration.
 	 * @param attributeName the name of the attribute
 	 * @since 4.3
+	 * 代表 @ModelAttribute 中 哪些属性是不需要绑定的
 	 */
 	public void setBindingDisabled(String attributeName) {
 		this.bindingDisabled.add(attributeName);

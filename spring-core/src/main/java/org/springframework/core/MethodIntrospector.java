@@ -54,9 +54,11 @@ public final class MethodIntrospector {
 	 * or {@code null} for no match
 	 * @return the selected methods associated with their metadata (in the order of retrieval),
 	 * or an empty map in case of no match
+	 * 将 目标类中某些方法 通过筛选后返回一个map
 	 */
 	public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
 		final Map<Method, T> methodMap = new LinkedHashMap<>();
+		// 这里是 特地维护了 顺序的 这样 接口 会按照 从子接口 到 父接口的顺序添加
 		Set<Class<?>> handlerTypes = new LinkedHashSet<>();
 		Class<?> specificHandlerType = null;
 
@@ -64,15 +66,21 @@ public final class MethodIntrospector {
 			specificHandlerType = ClassUtils.getUserClass(targetType);
 			handlerTypes.add(specificHandlerType);
 		}
+		// 将目标类 的所有接口 传入
 		handlerTypes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetType));
 
+		// 遍历顺序 由子接口到父接口
 		for (Class<?> currentHandlerType : handlerTypes) {
 			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
 
+			// 针对 方法进行处理 并将结果 维护到 methodMap中
 			ReflectionUtils.doWithMethods(currentHandlerType, method -> {
+				// 尽可能返回重写方法
 				Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+				// metadataLookup 在 spring mvc 的环境下 是查找 对应方法 是否携带@RequestMapping 注解
 				T result = metadataLookup.inspect(specificMethod);
 				if (result != null) {
+					// 寻找桥接方法 存在泛型的情况下 返回值是 Object 类型的 所以 需要生成一个 虚拟的方法 也就是桥接方法
 					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 					if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
 						methodMap.put(specificMethod, result);

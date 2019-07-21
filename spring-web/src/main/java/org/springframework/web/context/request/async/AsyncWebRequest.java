@@ -25,7 +25,8 @@ import org.springframework.web.context.request.NativeWebRequest;
  * Extends {@link NativeWebRequest} with methods for asynchronous request processing.
  *
  * @author Rossen Stoyanchev
- * @since 3.2
+ * @since 3.
+ * 异步请求接口  对应到 Tomcat 中AsyncContext 的接口
  */
 public interface AsyncWebRequest extends NativeWebRequest {
 

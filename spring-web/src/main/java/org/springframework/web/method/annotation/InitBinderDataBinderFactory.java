@@ -35,9 +35,13 @@ import org.springframework.web.method.support.InvocableHandlerMethod;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 重写父类2个 核心方法 创建 binder 实例 和 init binder实例
  */
 public class InitBinderDataBinderFactory extends DefaultDataBinderFactory {
 
+	/**
+	 * 代表 某个 Controller 上 所有携带@InitBinder 的方法 以及 符合该Controller 匹配条件的所有@ControllerAdvice 的 @InitBinder 方法
+	 */
 	private final List<InvocableHandlerMethod> binderMethods;
 
 
@@ -60,11 +64,14 @@ public class InitBinderDataBinderFactory extends DefaultDataBinderFactory {
 	 * it is invoked only if the names include the target object name.
 	 * @throws Exception if one of the invoked @{@link InitBinder} methods fails
 	 * @see #isBinderMethodApplicable
+	 * 根据 请求对象初始化binder 对象
 	 */
 	@Override
 	public void initBinder(WebDataBinder dataBinder, NativeWebRequest request) throws Exception {
 		for (InvocableHandlerMethod binderMethod : this.binderMethods) {
+			// 是否符合绑定条件  一个 binder 对象只能管理一个对象的绑定 这里是看 @InitBinder 中的 处理对象数组中是否有包含 DataBinder
 			if (isBinderMethodApplicable(binderMethod, dataBinder)) {
+				// 调用目标方法并返回结果
 				Object returnValue = binderMethod.invokeForRequest(request, null, dataBinder);
 				if (returnValue != null) {
 					throw new IllegalStateException(
@@ -80,6 +87,7 @@ public class InitBinderDataBinderFactory extends DefaultDataBinderFactory {
 	 * check the specified attribute names in the annotation value, if any.
 	 */
 	protected boolean isBinderMethodApplicable(HandlerMethod initBinderMethod, WebDataBinder dataBinder) {
+		// 获取  initBinder 的值
 		InitBinder ann = initBinderMethod.getMethodAnnotation(InitBinder.class);
 		Assert.state(ann != null, "No InitBinder annotation");
 		String[] names = ann.value();

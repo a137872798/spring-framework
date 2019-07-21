@@ -43,9 +43,13 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
  * @author Brian Clozel
  * @author Juergen Hoeller
  * @since 3.2
+ * 针对 携带了 ControllerAdvice 注解的类 包装成的 bean 对象
  */
 public class ControllerAdviceBean implements Ordered {
 
+	/**
+	 * 一般是 bean 的 name 在需要时 需要从工厂中获取
+	 */
 	private final Object bean;
 
 	@Nullable
@@ -53,6 +57,9 @@ public class ControllerAdviceBean implements Ordered {
 
 	private final int order;
 
+	/**
+	 * 该谓语对象的信息 就是从注解中抽取出来
+	 */
 	private final HandlerTypePredicate beanTypePredicate;
 
 
@@ -73,6 +80,11 @@ public class ControllerAdviceBean implements Ordered {
 		this((Object) beanName, beanFactory);
 	}
 
+	/**
+	 * 初始化 该对象
+	 * @param bean
+	 * @param beanFactory
+	 */
 	private ControllerAdviceBean(Object bean, @Nullable BeanFactory beanFactory) {
 		this.bean = bean;
 		this.beanFactory = beanFactory;

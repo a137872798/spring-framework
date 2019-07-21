@@ -35,11 +35,15 @@ import org.springframework.util.ObjectUtils;
  * @author Juergen Hoeller
  * @since 20.06.2003
  * @see HandlerInterceptor
+ * 该对象整合了 拦截器链 以及 handler 对象
  */
 public class HandlerExecutionChain {
 
 	private static final Log logger = LogFactory.getLog(HandlerExecutionChain.class);
 
+	/**
+	 * 该 handler 对象 没有限定类型
+	 */
 	private final Object handler;
 
 	@Nullable
@@ -134,9 +138,11 @@ public class HandlerExecutionChain {
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
 				if (!interceptor.preHandle(request, response, this.handler)) {
+					// 代表本次请求处理完成
 					triggerAfterCompletion(request, response, null);
 					return false;
 				}
+				// 代表正在处理第几个拦截器 未执行到的拦截器 就不需要调用相关方法了
 				this.interceptorIndex = i;
 			}
 		}
@@ -162,6 +168,8 @@ public class HandlerExecutionChain {
 	 * Trigger afterCompletion callbacks on the mapped HandlerInterceptors.
 	 * Will just invoke afterCompletion for all interceptors whose preHandle invocation
 	 * has successfully completed and returned true.
+	 *
+	 * 注意 从后往前 执行 与前置执行顺序相反
 	 */
 	void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex)
 			throws Exception {

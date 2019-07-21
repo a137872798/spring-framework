@@ -40,15 +40,22 @@ import org.springframework.web.method.HandlerMethod;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 代表可执行的 method
  */
 public class InvocableHandlerMethod extends HandlerMethod {
 
 	private static final Object[] EMPTY_ARGS = new Object[0];
 
 
+	/**
+	 * 该对象可以创建  DataBinder   (DataBinder 具备为 某个目标属性设置值 或者获取值的能力)
+	 */
 	@Nullable
 	private WebDataBinderFactory dataBinderFactory;
 
+	/**
+	 * 参数解析器整合对象
+	 */
 	private HandlerMethodArgumentResolverComposite resolvers = new HandlerMethodArgumentResolverComposite();
 
 	private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
@@ -126,11 +133,13 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * or if the method raised an exception
 	 * @see #getMethodArgumentValues
 	 * @see #doInvoke
+	 * 执行 携带 @ModelAttribute 的方法
 	 */
 	@Nullable
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 生成调用该方法 需要的实参
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
@@ -143,6 +152,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * argument values and falling back to the configured argument resolvers.
 	 * <p>The resulting array will be passed into {@link #doInvoke}.
 	 * @since 5.1.2
+	 * 获取方法需要的参数
 	 */
 	protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
@@ -154,7 +164,11 @@ public class InvocableHandlerMethod extends HandlerMethod {
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
+			// 为 参数对象 设置 参数名生成器
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			// 为 参数找到匹配的实参 也就是 按顺序找到类型匹配的 找到的话 为数组赋值  默认情况 providedArgs 为 null 这样就需要 根据参数解析器找到对应的参数
+			// 看来 如果有参数 携带@ModelAttribute 就是在 resolver 中做处理
+			// 如果该方法时 @InitBinder 对应的方法 providedArgs 一般会携带一个 DataBinder 对象 一般情况下 @InitBinder 的参数列表也会携带该对象
 			args[i] = findProvidedArgument(parameter, providedArgs);
 			if (args[i] != null) {
 				continue;
@@ -163,6 +177,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				// 解析参数对象  dataBinderFactory具备 绑定参数值的功能 对应的类型为 ServletRequestDataBinderFactory
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {
@@ -181,6 +196,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 
 	/**
 	 * Invoke the handler method with the given argument values.
+	 * 执行携带@ModelAttribute 方法级注解 的方法
 	 */
 	@Nullable
 	protected Object doInvoke(Object... args) throws Exception {

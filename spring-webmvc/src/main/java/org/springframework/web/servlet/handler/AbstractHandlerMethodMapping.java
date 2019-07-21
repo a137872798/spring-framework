@@ -79,6 +79,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	private static final HandlerMethod PREFLIGHT_AMBIGUOUS_MATCH =
 			new HandlerMethod(new EmptyHandler(), ClassUtils.getMethod(EmptyHandler.class, "handle"));
 
+	/**
+	 * TODO 跨域相关的配置先不看
+	 */
 	private static final CorsConfiguration ALLOW_CORS_CONFIG = new CorsConfiguration();
 
 	static {
@@ -94,6 +97,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@Nullable
 	private HandlerMethodMappingNamingStrategy<T> namingStrategy;
 
+	/**
+	 * 该对象用于 维护 controller requestMapping  以及 mapping 方法对应的 注解元数据
+	 */
 	private final MappingRegistry mappingRegistry = new MappingRegistry();
 
 
@@ -193,6 +199,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	/**
 	 * Detects handler methods at initialization.
 	 * @see #initHandlerMethods
+	 * 该方法 是在 每个bean 初始化完成后执行的钩子 在bean 都已经完成初始化的时候就可以尝试 寻找 @Controller 注解了
 	 */
 	@Override
 	public void afterPropertiesSet() {
@@ -204,13 +211,18 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #getCandidateBeanNames()
 	 * @see #processCandidateBean
 	 * @see #handlerMethodsInitialized
+	 * 扫描整个 上下文 并初始化 HandlerMethod 对象
 	 */
 	protected void initHandlerMethods() {
+		// getCandidateBeanNames 返回了 整个 context 中所有的 Object 类型的bean (也就是全部的bean)
 		for (String beanName : getCandidateBeanNames()) {
+			// SCOPED_TARGET_NAME_PREFIX 除外
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				processCandidateBean(beanName);
 			}
 		}
+
+		// 在上面已经完成了 @RequsetMapping 方法级别 的 对象抽取  该方法只是打印日志
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -248,7 +260,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		// 判断是否是 handler 的方法由 子类实现 应该就是 携带 @Controller 或者是 携带@RequestMapping
 		if (beanType != null && isHandler(beanType)) {
+			// 抽取 出 方法级别的 handler 信息 并生成各种映射容器 便于查找
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -257,13 +271,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * Look for handler methods in the specified handler bean.
 	 * @param handler either a bean name or an actual handler instance
 	 * @see #getMappingForMethod
+	 * 从  handler 对象中 抽取出 handlerMethod
 	 */
 	protected void detectHandlerMethods(Object handler) {
 		Class<?> handlerType = (handler instanceof String ?
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
 
 		if (handlerType != null) {
+			// 这里有可能是 cglib 生成的class 需要返回原始的 class
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			// 筛选方法 将 method 与对应的 RequestMappingInfo 组合在一起
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
@@ -278,7 +295,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace(formatMappings(userType, methods));
 			}
 			methods.forEach((method, mapping) -> {
+				// 返回 动态代理处理后的方法 这里不细看
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				// handler 代表 携带@Controller 的 类  invocableMethod 代表 携带@RequestMapping 的方法 mapping 代表该方法携带的信息
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -320,6 +339,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param handler either a bean name or an actual handler instance
 	 * @param method the target method
 	 * @return the created HandlerMethod
+	 * 通过 controller 类 和 对应的 handler 方法 构建 HandlerMethod 对象
 	 */
 	protected HandlerMethod createHandlerMethod(Object handler, Method method) {
 		HandlerMethod handlerMethod;
@@ -345,6 +365,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	/**
 	 * Invoked after all handler methods have been detected.
 	 * @param handlerMethods a read-only map with handler methods and mappings.
+	 *                       处理映射对象 这里只是打印日志
 	 */
 	protected void handlerMethodsInitialized(Map<T, HandlerMethod> handlerMethods) {
 		// Total includes detected mappings + explicit registrations via registerMapping
@@ -359,12 +380,15 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 	/**
 	 * Look up a handler method for the given request.
+	 * 根据 req 对象 获取对应的 handler 对象 由于父类 返回是 Object 类型 所以 这里可以限定返回 HandlerMethod
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 获取本次请求的 url
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		this.mappingRegistry.acquireReadLock();
 		try {
+			// 按照url 查找对应的 handlerMethod 对象
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
@@ -381,14 +405,19 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @return the best-matching handler method, or {@code null} if no match
 	 * @see #handleMatch(Object, String, HttpServletRequest)
 	 * @see #handleNoMatch(Set, String, HttpServletRequest)
+	 * 通过传入的 path 和 req 寻找对应的 handlermethod 对象
 	 */
 	@Nullable
 	protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) throws Exception {
+		// Match 代表一组匹配结果
 		List<Match> matches = new ArrayList<>();
+		// 根据 传入的 url 寻找匹配的 RequestMappingInfo  就是尝试去匹配 @RequestMapping的 path() 属性
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByUrl(lookupPath);
 		if (directPathMatches != null) {
+			// 如果 path 匹配成功还是不够 还需要匹配 @RequestMapping 其他信息与 req 中携带的信息
 			addMatchingMappings(directPathMatches, matches, request);
 		}
+		// 如果尝试直接匹配 path 失败了 尝试使用 全部的 RequestMappingInfo 对象去匹配
 		if (matches.isEmpty()) {
 			// No choice but to go through all mappings...
 			addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
@@ -414,17 +443,27 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 							"Ambiguous handler methods mapped for '" + uri + "': {" + m1 + ", " + m2 + "}");
 				}
 			}
+			// 设置最佳的 匹配HandlerMethod 信息
 			request.setAttribute(BEST_MATCHING_HANDLER_ATTRIBUTE, bestMatch.handlerMethod);
+			// 针对 匹配成功的 handler 进行处理  就是在 req 中set 了一些属性 先不细看
 			handleMatch(bestMatch.mapping, lookupPath, request);
 			return bestMatch.handlerMethod;
 		}
 		else {
+			// 代表没有找到匹配的 RequestMapping 判断具体是 什么原因并抛出合适的异常
 			return handleNoMatch(this.mappingRegistry.getMappings().keySet(), lookupPath, request);
 		}
 	}
 
+	/**
+	 * mappings 代表匹配成功的@RequestMapping 抽取出的 对象 matches 代表待存入的 list
+	 * @param mappings
+	 * @param matches
+	 * @param request
+	 */
 	private void addMatchingMappings(Collection<T> mappings, List<Match> matches, HttpServletRequest request) {
 		for (T mapping : mappings) {
+			// 这里还需要进一步判断是否匹配成功 也就是将 req 中的条件 与 注解信息做匹配  里面不细看了
 			T match = getMatchingMapping(mapping, request);
 			if (match != null) {
 				matches.add(new Match(match, this.mappingRegistry.getMappings().get(mapping)));
@@ -521,13 +560,23 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * A registry that maintains all mappings to handler methods, exposing methods
 	 * to perform lookups and providing concurrent access.
 	 * <p>Package-private for testing purposes.
+	 * 用于 维护 mapping 信息的注册对象
 	 */
 	class MappingRegistry {
 
+		/**
+		 * 以mappingInfo 作为key
+		 */
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
 
+		/**
+		 * 维护 mappingInfo  与  HandlerMethod 的 映射 可以通过 req 对象 与 mappinginfo做匹配 并返回 对应的 HandlerMethod 对象
+		 */
 		private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
 
+		/**
+		 * 通过url 来寻找 MappingInfo 一个url 可能会匹配多个 (多个 携带@RequestMapping 的 path 属性却是一样的 这样就会产生 1对多)
+		 */
 		private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
 
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
@@ -582,24 +631,35 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			this.readWriteLock.readLock().unlock();
 		}
 
+		/**
+		 * 将 handler 信息保存  这里的 T 其实代表的是 实现 RequestCondition 接口的类
+		 * @param mapping 代表RequestMappingInfo
+		 * @param handler 代表@Controller注解修饰的类
+		 * @param method  代表@RequestMapping注解修饰的方法
+		 */
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 构建handlerMethod
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// 确保唯一性
 				assertUniqueMethodMapping(handlerMethod, mapping);
 				this.mappingLookup.put(mapping, handlerMethod);
 
+				// 返回不含有通配符的 url
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
+				// 这里是 根据 handlerMethod 生成 以name 进行 映射的 映射对 并存入 容器
 				if (getNamingStrategy() != null) {
 					name = getNamingStrategy().getName(handlerMethod, mapping);
 					addMappingName(name, handlerMethod);
 				}
 
+				// 跨域相关先不看
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
@@ -622,9 +682,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 		}
 
+		/**
+		 * 获取直接 url
+		 * @param mapping
+		 * @return
+		 */
 		private List<String> getDirectUrls(T mapping) {
 			List<String> urls = new ArrayList<>(1);
+			// 可以简单的看作 就是 返回@RequestMapping 的 path() 属性
 			for (String path : getMappingPathPatterns(mapping)) {
+				// 代表这些路径中没有通配符
 				if (!getPathMatcher().isPattern(path)) {
 					urls.add(path);
 				}
@@ -748,11 +815,18 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	/**
 	 * A thin wrapper around a matched HandlerMethod and its mapping, for the purpose of
 	 * comparing the best match with a comparator in the context of the current request.
+	 * match 代表匹配对象
 	 */
 	private class Match {
 
+		/**
+		 * 匹配条件对象 可以是 RequestMappingInfo 因为该类实现了Condition 接口
+		 */
 		private final T mapping;
 
+		/**
+		 * 匹配成功的 method
+		 */
 		private final HandlerMethod handlerMethod;
 
 		public Match(T mapping, HandlerMethod handlerMethod) {

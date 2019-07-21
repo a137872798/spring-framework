@@ -40,13 +40,16 @@ import org.springframework.web.servlet.ViewResolver;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see #loadView
+ * 具备缓存功能的 视图解析器 避免每次都重新解析  缓存层最好使用 切面方式进行编织吧 比如使用装饰器模式
  */
 public abstract class AbstractCachingViewResolver extends WebApplicationObjectSupport implements ViewResolver {
 
 	/** Default maximum number of entries for the view cache: 1024. */
+	// 默认的缓存容器大小
 	public static final int DEFAULT_CACHE_LIMIT = 1024;
 
 	/** Dummy marker object for unresolved views in the cache Maps. */
+	// 一个空的 视图对象 内容类型为 null  渲染结果为null  render 有渲染的意思
 	private static final View UNRESOLVED_VIEW = new View() {
 		@Override
 		@Nullable
@@ -63,17 +66,21 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	private volatile int cacheLimit = DEFAULT_CACHE_LIMIT;
 
 	/** Whether we should refrain from resolving views again if unresolved once. */
+	// 是否允许 返回UnResolver_view
 	private boolean cacheUnresolved = true;
 
 	/** Fast access cache for Views, returning already cached instances without a global lock. */
+	// 返回缓存的视图对象
 	private final Map<Object, View> viewAccessCache = new ConcurrentHashMap<>(DEFAULT_CACHE_LIMIT);
 
 	/** Map from view key to View instance, synchronized for View creation. */
+	// 这个容器 保存了所有创建的 视图对象 并具备移除 最早加入视图的 能力
 	@SuppressWarnings("serial")
 	private final Map<Object, View> viewCreationCache =
 			new LinkedHashMap<Object, View>(DEFAULT_CACHE_LIMIT, 0.75f, true) {
 				@Override
 				protected boolean removeEldestEntry(Map.Entry<Object, View> eldest) {
+					// 一旦超过了限定的大小就移除最早的元素
 					if (size() > getCacheLimit()) {
 						viewAccessCache.remove(eldest.getKey());
 						return true;
@@ -142,18 +149,31 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	}
 
 
+	/**
+	 * 解析视图的骨架  创建视图的核心方法 还是委托给 createView
+	 * @param viewName name of the view to resolve
+	 * @param locale the Locale in which to resolve the view.
+	 * ViewResolvers that support internationalization should respect this.
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	@Nullable
 	public View resolveViewName(String viewName, Locale locale) throws Exception {
+		// 没有使用缓存的情况下 直接创建一个新的View 对象
 		if (!isCache()) {
 			return createView(viewName, locale);
 		}
 		else {
+			// 获取缓存标识
 			Object cacheKey = getCacheKey(viewName, locale);
+			// 尝试从缓存中获取
 			View view = this.viewAccessCache.get(cacheKey);
 			if (view == null) {
+				// 这里使用 viewCreationCache保证创建视图时 不会出现并发问题
 				synchronized (this.viewCreationCache) {
 					view = this.viewCreationCache.get(cacheKey);
+					// 在创建的视图中没有找到 对象才可以创建 否则别的线程可能正在创建一个 view 对象
 					if (view == null) {
 						// Ask the subclass to create the View object.
 						view = createView(viewName, locale);

@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * @since 3.1
  * @param <T> the type of objects that this RequestCondition can be combined
  * with and compared to
+ *           用于匹配 req 和handler 的 条件接口
  */
 public abstract class AbstractRequestCondition<T extends AbstractRequestCondition<T>> implements RequestCondition<T> {
 

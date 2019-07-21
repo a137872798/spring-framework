@@ -26,6 +26,7 @@ import org.springframework.web.context.request.NativeWebRequest;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 数据绑定工厂  WebBindingInitializer 允许为null
  */
 public class DefaultDataBinderFactory implements WebDataBinderFactory {
 
@@ -53,10 +54,12 @@ public class DefaultDataBinderFactory implements WebDataBinderFactory {
 	public final WebDataBinder createBinder(
 			NativeWebRequest webRequest, @Nullable Object target, String objectName) throws Exception {
 
+		// 创建数据绑定对象   估计是从req 中根据对象名获取对象值
 		WebDataBinder dataBinder = createBinderInstance(target, objectName, webRequest);
 		if (this.initializer != null) {
 			this.initializer.initBinder(dataBinder, webRequest);
 		}
+		// 初始化binder 对象  如果 binder 的对象 属于 Controller(ControllerAdvice) 下携带@InitBinder 的注解中  会使用该对象 执行initBinder 方法
 		initBinder(dataBinder, webRequest);
 		return dataBinder;
 	}

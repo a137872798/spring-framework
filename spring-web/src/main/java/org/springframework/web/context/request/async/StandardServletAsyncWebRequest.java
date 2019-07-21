@@ -40,11 +40,15 @@ import org.springframework.web.context.request.ServletWebRequest;
  *
  * @author Rossen Stoyanchev
  * @since 3.2
+ * 标准的异步请求处理对象  基本实现都是委托给 Tomcat 提供的 AsyncContext
  */
 public class StandardServletAsyncWebRequest extends ServletWebRequest implements AsyncWebRequest, AsyncListener {
 
 	private Long timeout;
 
+	/**
+	 * 异步上下文  由tomcat 实现
+	 */
 	private AsyncContext asyncContext;
 
 	private AtomicBoolean asyncCompleted = new AtomicBoolean(false);
@@ -106,6 +110,9 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 		return this.asyncCompleted.get();
 	}
 
+	/**
+	 * 调用该方法 真正开始 进行异步请求
+	 */
 	@Override
 	public void startAsync() {
 		Assert.state(getRequest().isAsyncSupported(),

@@ -44,6 +44,7 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  * @since 3.1.2
+ * 代表 发现http 使用的 body 是 Application/json 时 会匹配到该对象 使得@RequestBody 的参数 按照json 方式解析成对象  @ResponseBody 将返回结果解析成json字符串
  */
 public class MappingJackson2HttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 

@@ -52,6 +52,7 @@ public interface BeanWrapper extends ConfigurablePropertyAccessor {
 	 * Specify a limit for array and collection auto-growing.
 	 * <p>Default is unlimited on a plain BeanWrapper.
 	 * @since 4.1
+	 * 为 容器设置容量
 	 */
 	void setAutoGrowCollectionLimit(int autoGrowCollectionLimit);
 
@@ -63,11 +64,13 @@ public interface BeanWrapper extends ConfigurablePropertyAccessor {
 
 	/**
 	 * Return the bean instance wrapped by this object.
+	 * 返回被包装的对象
 	 */
 	Object getWrappedInstance();
 
 	/**
 	 * Return the type of the wrapped bean instance.
+	 * 返回被包装的类型
 	 */
 	Class<?> getWrappedClass();
 
@@ -75,6 +78,7 @@ public interface BeanWrapper extends ConfigurablePropertyAccessor {
 	 * Obtain the PropertyDescriptors for the wrapped object
 	 * (as determined by standard JavaBeans introspection).
 	 * @return the PropertyDescriptors for the wrapped object
+	 * 获取描述信息
 	 */
 	PropertyDescriptor[] getPropertyDescriptors();
 

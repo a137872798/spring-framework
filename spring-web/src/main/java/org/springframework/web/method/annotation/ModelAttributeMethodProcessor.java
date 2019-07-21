@@ -72,6 +72,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  * @since 3.1
+ * 该类用于对参数进行校验  因为该类实现了 HandlerMethodArgumentResolver 接口 所以会对方法参数做特殊处理
  */
 public class ModelAttributeMethodProcessor implements HandlerMethodArgumentResolver, HandlerMethodReturnValueHandler {
 
@@ -79,6 +80,9 @@ public class ModelAttributeMethodProcessor implements HandlerMethodArgumentResol
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 判断注解是否是必须的
+	 */
 	private final boolean annotationNotRequired;
 
 
@@ -97,6 +101,7 @@ public class ModelAttributeMethodProcessor implements HandlerMethodArgumentResol
 	 * Returns {@code true} if the parameter is annotated with
 	 * {@link ModelAttribute} or, if in default resolution mode, for any
 	 * method parameter that is not a simple type.
+	 * 针对 非简单类型 和 携带@ModelAttribute 注解的类都是支持的
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {

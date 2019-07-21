@@ -36,14 +36,31 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 具备 处理携带@ModelAttribute 的参数 以及返回值
  */
 public class ModelMethodProcessor implements HandlerMethodArgumentResolver, HandlerMethodReturnValueHandler {
 
+	/**
+	 * 参数是 Model 的子类时 符合条件
+	 * @param parameter the method parameter to check
+	 * @return
+	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		return Model.class.isAssignableFrom(parameter.getParameterType());
 	}
 
+	/**
+	 * 替换成 Model对象
+	 * @param parameter the method parameter to resolve. This parameter must
+	 * have previously been passed to {@link #supportsParameter} which must
+	 * have returned {@code true}.
+	 * @param mavContainer the ModelAndViewContainer for the current request
+	 * @param webRequest the current request
+	 * @param binderFactory a factory for creating {@link WebDataBinder} instances
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	@Nullable
 	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
@@ -53,6 +70,11 @@ public class ModelMethodProcessor implements HandlerMethodArgumentResolver, Hand
 		return mavContainer.getModel();
 	}
 
+	/**
+	 * 结果是 Model 类型
+	 * @param returnType the method return type to check
+	 * @return
+	 */
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
 		return Model.class.isAssignableFrom(returnType.getParameterType());
@@ -65,6 +87,7 @@ public class ModelMethodProcessor implements HandlerMethodArgumentResolver, Hand
 		if (returnValue == null) {
 			return;
 		}
+		// 将 Model 中所有属性添加到 mavc 中的 model 中
 		else if (returnValue instanceof Model) {
 			mavContainer.addAllAttributes(((Model) returnValue).asMap());
 		}

@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @author Rossen Stoyanchev
  * @since 3.1
  * @see FlashMap
+ * 相当于是 Model 层的暂存  默认实现是 保存到session中
  */
 public interface FlashMapManager {
 
@@ -41,6 +42,7 @@ public interface FlashMapManager {
 	 * @param request the current request
 	 * @param response the current response
 	 * @return a FlashMap matching the current request or {@code null}
+	 * 恢复之前的参数 并清除过期参数
 	 */
 	@Nullable
 	FlashMap retrieveAndUpdate(HttpServletRequest request, HttpServletResponse response);
@@ -54,6 +56,7 @@ public interface FlashMapManager {
 	 * @param flashMap the FlashMap to save
 	 * @param request the current request
 	 * @param response the current response
+	 *                 将参数暂存起来
 	 */
 	void saveOutputFlashMap(FlashMap flashMap, HttpServletRequest request, HttpServletResponse response);
 

@@ -426,7 +426,9 @@ public class MethodParameter {
 				Method method = getMethod();
 				paramType = (method != null ? method.getGenericReturnType() : void.class);
 			}
+			// 默认走这边
 			else {
+				// 获取方法参数
 				Type[] genericParameterTypes = this.executable.getGenericParameterTypes();
 				int index = this.parameterIndex;
 				if (this.executable instanceof Constructor &&

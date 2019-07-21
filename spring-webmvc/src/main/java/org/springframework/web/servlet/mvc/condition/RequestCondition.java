@@ -65,6 +65,7 @@ public interface RequestCondition<T> {
 	 * a specific request. This method assumes both instances have
 	 * been obtained via {@link #getMatchingCondition(HttpServletRequest)}
 	 * to ensure they have content relevant to current request only.
+	 * 用于返回 besthandler
 	 */
 	int compareTo(T other, HttpServletRequest request);
 

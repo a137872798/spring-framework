@@ -51,6 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @see #setFieldMarkerPrefix
  * @see #setFieldDefaultPrefix
  * @see ServletRequestDataBinder
+ * 处于 web中的 dataBinder 对象
  */
 public class WebDataBinder extends DataBinder {
 

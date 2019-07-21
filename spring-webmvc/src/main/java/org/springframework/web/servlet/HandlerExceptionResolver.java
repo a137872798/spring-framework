@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @since 22.11.2003
+ * 针对 handler 抛出的异常的解析器
  */
 public interface HandlerExceptionResolver {
 
@@ -48,6 +49,7 @@ public interface HandlerExceptionResolver {
 	 * @param ex the exception that got thrown during handler execution
 	 * @return a corresponding {@code ModelAndView} to forward to,
 	 * or {@code null} for default processing in the resolution chain
+	 * 解析异常 并生成 异常情况要 渲染的 ModelAndView 对象
 	 */
 	@Nullable
 	ModelAndView resolveException(

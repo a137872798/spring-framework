@@ -45,6 +45,7 @@ import org.springframework.lang.Nullable;
  * @since 17.06.2003
  * @see org.springframework.ui.context.Theme
  * @see org.springframework.ui.context.ThemeSource
+ * 主题解析器
  */
 public interface ThemeResolver {
 

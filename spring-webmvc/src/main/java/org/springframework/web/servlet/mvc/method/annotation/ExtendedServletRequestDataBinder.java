@@ -30,6 +30,7 @@ import org.springframework.web.servlet.HandlerMapping;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 具备 绑定数据能力的类
  */
 public class ExtendedServletRequestDataBinder extends ServletRequestDataBinder {
 

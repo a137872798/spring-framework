@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @since 3.1
+ * 由 controller 和 某个 携带@RequestMapping 的方法组成
  */
 public class HandlerMethod {
 
@@ -100,8 +101,11 @@ public class HandlerMethod {
 		this.beanFactory = null;
 		this.beanType = ClassUtils.getUserClass(bean);
 		this.method = method;
+		// 尝试生成桥接方法 先不管
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+		// 初始化
 		this.parameters = initMethodParameters();
+		// 判断目标方法上是否携带 @ResponseStatus 注解
 		evaluateResponseStatus();
 	}
 
@@ -176,17 +180,26 @@ public class HandlerMethod {
 		this.resolvedFromHandlerMethod = handlerMethod;
 	}
 
+	/**
+	 * 将该方法的每个 参数 抽象成 MethodParameter
+	 * @return
+	 */
 	private MethodParameter[] initMethodParameters() {
 		int count = this.bridgedMethod.getParameterCount();
 		MethodParameter[] result = new MethodParameter[count];
 		for (int i = 0; i < count; i++) {
+			// 下标代表该参数在参数列表中的位置
 			HandlerMethodParameter parameter = new HandlerMethodParameter(i);
+			// 这里不细看
 			GenericTypeResolver.resolveParameterType(parameter, this.beanType);
 			result[i] = parameter;
 		}
 		return result;
 	}
 
+	/**
+	 * 判断该方法 是否存在 @ResponseStatus 注解 并设置到对应的属性中
+	 */
 	private void evaluateResponseStatus() {
 		ResponseStatus annotation = getMethodAnnotation(ResponseStatus.class);
 		if (annotation == null) {
@@ -475,6 +488,10 @@ public class HandlerMethod {
 			return HandlerMethod.this.hasMethodAnnotation(annotationType);
 		}
 
+		/**
+		 * 获取该参数上所有的注解
+		 * @return
+		 */
 		@Override
 		public Annotation[] getParameterAnnotations() {
 			Annotation[] anns = this.combinedAnnotations;

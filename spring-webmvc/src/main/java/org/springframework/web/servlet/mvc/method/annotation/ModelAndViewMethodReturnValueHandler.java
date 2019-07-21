@@ -41,6 +41,7 @@ import org.springframework.web.servlet.View;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 代表 返回值 就是 ModelAndView 对象
  */
 public class ModelAndViewMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
@@ -74,20 +75,33 @@ public class ModelAndViewMethodReturnValueHandler implements HandlerMethodReturn
 		return ModelAndView.class.isAssignableFrom(returnType.getParameterType());
 	}
 
+	/**
+	 * 处理返回值是 ModelAndView 的情况
+	 * @param returnValue the value returned from the handler method
+	 * @param returnType the type of the return value. This type must have
+	 * previously been passed to {@link #supportsReturnType} which must
+	 * have returned {@code true}.
+	 * @param mavContainer the ModelAndViewContainer for the current request
+	 * @param webRequest the current request
+	 * @throws Exception
+	 */
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
+		// 如果没有返回值 也就不需要 处理ModelAndView 了 因为这里已经显式指定了 返回值就是 ModelAndView 对象
 		if (returnValue == null) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
 
 		ModelAndView mav = (ModelAndView) returnValue;
+		// 如果 mav 中存放的 是视图名
 		if (mav.isReference()) {
 			String viewName = mav.getViewName();
 			mavContainer.setViewName(viewName);
 			if (viewName != null && isRedirectViewName(viewName)) {
+				// 代表重定向
 				mavContainer.setRedirectModelScenario(true);
 			}
 		}

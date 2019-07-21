@@ -56,11 +56,15 @@ import org.springframework.web.util.NestedServletException;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 在可执行 method 基础上 增加了 处理 @ResponseStatus 注解  处理返回值  处理异步结果
  */
 public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 	private static final Method CALLABLE_METHOD = ClassUtils.getMethod(Callable.class, "call");
 
+	/**
+	 * 对返回值做处理的对象
+	 */
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
@@ -95,24 +99,30 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * @param webRequest the current request
 	 * @param mavContainer the ModelAndViewContainer for this request
 	 * @param providedArgs "given" arguments matched by type (not resolved)
+	 *                     执行方法 并处理返回值
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 对应父类的调用方法 并返回结果  这里会调用 argumentResolver 生成需要的参数
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		setResponseStatus(webRequest);
 
+		// 返回值 为null 时  (也就不需要处理了)
 		if (returnValue == null) {
+			// 设置成已经处理过   setRequestHandled 标识 决定着之后 是否会返回 View 对象 也就是是否需要走 视图渲染这一套
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
 				mavContainer.setRequestHandled(true);
 				return;
 			}
 		}
+		// 返回值不为null 时  如果注解中有 reason 也不进行处理
 		else if (StringUtils.hasText(getResponseStatusReason())) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
 
+		// 代表没有处理过 使用 returnValueHandler 处理  那就是 如果已经设置了@ResponseStatus.reason()  returnValueHandlers 对象就不会执行了
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
@@ -129,14 +139,17 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 	/**
 	 * Set the response status according to the {@link ResponseStatus} annotation.
+	 * 为请求对象设置结果
 	 */
 	private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
+		// 获取携带的 @ResponseStatus
 		HttpStatus status = getResponseStatus();
 		if (status == null) {
 			return;
 		}
 
 		HttpServletResponse response = webRequest.getResponse();
+		// 将 status 设置到 response 中
 		if (response != null) {
 			String reason = getResponseStatusReason();
 			if (StringUtils.hasText(reason)) {
@@ -147,7 +160,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			}
 		}
 
-		// To be picked up by RedirectView
+		// To be picked up by RedirectView  为 req 对象设置status
 		webRequest.getRequest().setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, status);
 	}
 

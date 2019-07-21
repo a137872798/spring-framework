@@ -25,6 +25,7 @@ import org.springframework.web.context.request.WebRequest;
  * @author Juergen Hoeller
  * @since 2.5
  * @see org.springframework.web.bind.annotation.SessionAttributes
+ * 用于缓存 ModelAttribute 的策略
  */
 public interface SessionAttributeStore {
 
@@ -35,6 +36,7 @@ public interface SessionAttributeStore {
 	 * @param request the current request
 	 * @param attributeName the name of the attribute
 	 * @param attributeValue the attribute value to store
+	 *                       为某个请求 绑定 k,v
 	 */
 	void storeAttribute(WebRequest request, String attributeName, Object attributeValue);
 
@@ -46,6 +48,7 @@ public interface SessionAttributeStore {
 	 * @param request the current request
 	 * @param attributeName the name of the attribute
 	 * @return the current attribute value, or {@code null} if none
+	 * 		从请求中取回某个属性
 	 */
 	@Nullable
 	Object retrieveAttribute(WebRequest request, String attributeName);
@@ -55,6 +58,7 @@ public interface SessionAttributeStore {
 	 * <p>Indicates that the attribute name will not be used anymore.
 	 * @param request the current request
 	 * @param attributeName the name of the attribute
+	 *                      清除请求中缓存的 某个属性
 	 */
 	void cleanupAttribute(WebRequest request, String attributeName);
 

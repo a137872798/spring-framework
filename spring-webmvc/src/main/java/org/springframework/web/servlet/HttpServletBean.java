@@ -77,6 +77,7 @@ import org.springframework.web.context.support.StandardServletEnvironment;
  * @see #initServletBean
  * @see #doGet
  * @see #doPost
+ * 使得 HttpServlet 获得了 spring 的Environment
  */
 @SuppressWarnings("serial")
 public abstract class HttpServletBean extends HttpServlet implements EnvironmentCapable, EnvironmentAware {
@@ -84,6 +85,9 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * spring 的环境对象
+	 */
 	@Nullable
 	private ConfigurableEnvironment environment;
 
@@ -143,18 +147,25 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * invoke subclass initialization.
 	 * @throws ServletException if bean properties are invalid (or required
 	 * properties are missing), or if subclass initialization fails.
+	 * 当启动servlet 时 会调用
 	 */
 	@Override
 	public final void init() throws ServletException {
 
 		// Set bean properties from init parameters.
+		// 获取web.xml中的 initparam 参数信息 并抽象成 PropertyValues
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				// 将本对象构建成一个  Bean 的 包装对象
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+				// 生成用于解析 servlet上下文的资源加载器
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+				// 注册编辑者 这样 对应的资源对象 会通过给定的编辑者进行编辑 内部就是维护一个map
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
+				// 初始化对象 由子类实现 现在是 noop
 				initBeanWrapper(bw);
+				// 设置属性
 				bw.setPropertyValues(pvs, true);
 			}
 			catch (BeansException ex) {
@@ -166,6 +177,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// 由子类实现 做初始化工作
 		initServletBean();
 	}
 
@@ -204,26 +216,32 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 	/**
 	 * PropertyValues implementation created from ServletConfig init parameters.
+	 * MutablePropertyValues 本身 代表一个 List<Pair> 这里 Pair 代表一组匹配的键值对
 	 */
 	private static class ServletConfigPropertyValues extends MutablePropertyValues {
 
 		/**
 		 * Create new ServletConfigPropertyValues.
 		 * @param config the ServletConfig we'll use to take PropertyValues from
-		 * @param requiredProperties set of property names we need, where
+		 * @param requiredProperties set of property names we need, where    代表这个set 中的元素必须存在
 		 * we can't accept default values
 		 * @throws ServletException if any required properties are missing
+		 * 该对象是 通过 ServletConfig 来进行初始化的
 		 */
 		public ServletConfigPropertyValues(ServletConfig config, Set<String> requiredProperties)
 				throws ServletException {
 
+			// 默认情况 应该是 null 代表不存在被忽略的 属性
 			Set<String> missingProps = (!CollectionUtils.isEmpty(requiredProperties) ?
 					new HashSet<>(requiredProperties) : null);
 
+			// 获取 init 相关的全部参数名
 			Enumeration<String> paramNames = config.getInitParameterNames();
 			while (paramNames.hasMoreElements()) {
+				// 获取对应的值
 				String property = paramNames.nextElement();
 				Object value = config.getInitParameter(property);
+				// 添加键值对
 				addPropertyValue(new PropertyValue(property, value));
 				if (missingProps != null) {
 					missingProps.remove(property);
@@ -231,6 +249,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 			}
 
 			// Fail if we are still missing properties.
+			// 代表没有找到期望存在的属性
 			if (!CollectionUtils.isEmpty(missingProps)) {
 				throw new ServletException(
 						"Initialization from ServletConfig for servlet '" + config.getServletName() +

@@ -60,6 +60,11 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 	private MessageSourceAccessor messageSourceAccessor;
 
 
+	/**
+	 * 在对象被初始化后的 后置函数中 会判断是否 实现了 Aware 接口 并设置对应的属性
+	 * @param context
+	 * @throws BeansException
+	 */
 	@Override
 	public final void setApplicationContext(@Nullable ApplicationContext context) throws BeansException {
 		if (context == null && !isContextRequired()) {
@@ -67,6 +72,7 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 			this.applicationContext = null;
 			this.messageSourceAccessor = null;
 		}
+		// 默认情况走这个分支 设置 context
 		else if (this.applicationContext == null) {
 			// Initialize with passed-in context.
 			if (!requiredContextClass().isInstance(context)) {
@@ -74,6 +80,7 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 						"Invalid application context: needs to be of type [" + requiredContextClass().getName() + "]");
 			}
 			this.applicationContext = context;
+			// MessageSource 是跟国际化相关的类
 			this.messageSourceAccessor = new MessageSourceAccessor(context);
 			initApplicationContext(context);
 		}

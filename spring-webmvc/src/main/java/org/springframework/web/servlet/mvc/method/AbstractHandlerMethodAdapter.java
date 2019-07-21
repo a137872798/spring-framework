@@ -32,6 +32,7 @@ import org.springframework.web.servlet.support.WebContentGenerator;
  *
  * @author Arjen Poutsma
  * @since 3.1
+ * handler 适配器 骨架类
  */
 public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator implements HandlerAdapter, Ordered {
 
@@ -63,6 +64,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	 * This implementation expects the handler to be an {@link HandlerMethod}.
 	 * @param handler the handler instance to check
 	 * @return whether or not this adapter can adapt the given handler
+	 * 代表可以处理 HandlerMethod  该对象 就是通过抽取携带 @RequestMapping 注解的方法生成的
 	 */
 	@Override
 	public final boolean supports(Object handler) {
@@ -73,6 +75,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	 * Given a handler method, return whether or not this adapter can support it.
 	 * @param handlerMethod the handler method to check
 	 * @return whether or not this adapter can adapt the given method
+	 * 判断 是否支持处理 应该就是针对HttpMethod 进行匹配
 	 */
 	protected abstract boolean supportsInternal(HandlerMethod handlerMethod);
 
@@ -96,6 +99,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	 * @return a ModelAndView object with the name of the view and the required model data,
 	 * or {@code null} if the request has been handled directly
 	 * @throws Exception in case of errors
+	 * 实际的处理方法 由子类实现
 	 */
 	@Nullable
 	protected abstract ModelAndView handleInternal(HttpServletRequest request,

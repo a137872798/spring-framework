@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 作为 requestCondition 的包装
  */
 public final class RequestConditionHolder extends AbstractRequestCondition<RequestConditionHolder> {
 

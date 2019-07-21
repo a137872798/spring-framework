@@ -58,6 +58,7 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
  * @see org.springframework.beans.factory.xml.XmlBeanDefinitionReader
  * @see org.springframework.web.context.ContextLoader#initWebApplicationContext
  * @see org.springframework.web.servlet.FrameworkServlet#initWebApplicationContext
+ * 对应 web 的上下文对象 当该对象创建时 就会加载指定的配置文件
  */
 public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationContext {
 

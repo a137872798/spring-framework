@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
+ * 从 req 对象中剥离出 viewName
  */
 public interface RequestToViewNameTranslator {
 

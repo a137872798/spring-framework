@@ -54,6 +54,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Rossen Stoyanchev
  * @since 3.1
  * @see StandardServletMultipartResolver
+ * 该对象封装了普通的 req 具备上传功能
  */
 public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpServletRequest {
 
@@ -89,13 +90,16 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 	}
 
 
+	// 从req 对象中获取 上传文件 这个应该是 tomcat 相关的 可以不细看
 	private void parseRequest(HttpServletRequest request) {
 		try {
 			Collection<Part> parts = request.getParts();
 			this.multipartParameterNames = new LinkedHashSet<>(parts.size());
 			MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<>(parts.size());
+			// 遍历上传文件
 			for (Part part : parts) {
 				String headerValue = part.getHeader(HttpHeaders.CONTENT_DISPOSITION);
+				// 获取到上传文件的文件名
 				ContentDisposition disposition = ContentDisposition.parse(headerValue);
 				String filename = disposition.getFilename();
 				if (filename != null) {

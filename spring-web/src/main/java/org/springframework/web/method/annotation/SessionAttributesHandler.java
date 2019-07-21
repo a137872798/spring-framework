@@ -45,6 +45,7 @@ import org.springframework.web.context.request.WebRequest;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
+ * 该方法 整合了 Controller 类 以及  sessionAttributeStore
  */
 public class SessionAttributesHandler {
 
@@ -68,6 +69,7 @@ public class SessionAttributesHandler {
 		Assert.notNull(sessionAttributeStore, "SessionAttributeStore may not be null");
 		this.sessionAttributeStore = sessionAttributeStore;
 
+		// 获取 Controller 类上的 SessionAttribute 注解  这个方法应该是 包括了方法级别的 @SessionAttribute
 		SessionAttributes ann = AnnotatedElementUtils.findMergedAnnotation(handlerType, SessionAttributes.class);
 		if (ann != null) {
 			Collections.addAll(this.attributeNames, ann.names());
@@ -125,10 +127,12 @@ public class SessionAttributesHandler {
 	 * in the model that matched by type.
 	 * @param request the current request
 	 * @return a map with handler session attributes, possibly empty
+	 * 从 req 对象中 找回一些 @SessionAttribute 注解需要的属性
 	 */
 	public Map<String, Object> retrieveAttributes(WebRequest request) {
 		Map<String, Object> attributes = new HashMap<>();
 		for (String name : this.knownAttributeNames) {
+			// sessionAttributeStore 就是 调用 request 的一个窗口
 			Object value = this.sessionAttributeStore.retrieveAttribute(request, name);
 			if (value != null) {
 				attributes.put(name, value);

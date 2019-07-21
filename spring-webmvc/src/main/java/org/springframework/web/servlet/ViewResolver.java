@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.web.servlet.view.InternalResourceViewResolver
  * @see org.springframework.web.servlet.view.ResourceBundleViewResolver
  * @see org.springframework.web.servlet.view.XmlViewResolver
+ * 视图解析器接口 该接口能根据 传入的值 寻找到合适的 View 对象
  */
 public interface ViewResolver {
 
@@ -51,6 +52,7 @@ public interface ViewResolver {
 	 * (optional, to allow for ViewResolver chaining)
 	 * @throws Exception if the view cannot be resolved
 	 * (typically in case of problems creating an actual View object)
+	 * 根据传入的视图名  返回合适的 视图对象   Locale 代表 地区 可能有些解析器 还会根据地区的不同 生成不同的view 吧
 	 */
 	@Nullable
 	View resolveViewName(String viewName, Locale locale) throws Exception;

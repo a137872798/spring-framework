@@ -46,6 +46,7 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @see org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter
  * @see org.springframework.web.servlet.handler.SimpleServletHandlerAdapter
+ * handler 的适配器对象 根据 supports 来判断 是否适用于指定的 handler handle() 实际处理请求 并返回 ModelAndView 对象
  */
 public interface HandlerAdapter {
 

@@ -94,6 +94,7 @@ public abstract class WebApplicationContextUtils {
 	 * @param sc the ServletContext to find the web application context for
 	 * @return the root WebApplicationContext for this web app, or {@code null} if none
 	 * @see org.springframework.web.context.WebApplicationContext#ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE
+	 * 通过 servletContext 来初始化 Web上下文对象
 	 */
 	@Nullable
 	public static WebApplicationContext getWebApplicationContext(ServletContext sc) {
@@ -109,6 +110,7 @@ public abstract class WebApplicationContextUtils {
 	@Nullable
 	public static WebApplicationContext getWebApplicationContext(ServletContext sc, String attrName) {
 		Assert.notNull(sc, "ServletContext must not be null");
+		// 从 servletconext 中获取 WebApplicationContext.ROOT 该属性应该是没有设置的
 		Object attr = sc.getAttribute(attrName);
 		if (attr == null) {
 			return null;

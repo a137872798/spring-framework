@@ -89,12 +89,15 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	@Override
 	@Nullable
 	public final FlashMap retrieveAndUpdate(HttpServletRequest request, HttpServletResponse response) {
+		// 获取session 中的某个属性 如果没有设置就是没有 快照的
 		List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 		if (CollectionUtils.isEmpty(allFlashMaps)) {
 			return null;
 		}
 
+		// 获取判定已经过期的元素
 		List<FlashMap> mapsToRemove = getExpiredFlashMaps(allFlashMaps);
+		// 找到最匹配的 map
 		FlashMap match = getMatchingFlashMap(allFlashMaps, request);
 		if (match != null) {
 			mapsToRemove.add(match);

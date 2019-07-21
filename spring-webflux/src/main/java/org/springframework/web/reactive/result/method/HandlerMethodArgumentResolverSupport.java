@@ -29,7 +29,7 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.util.Assert;
 
 /**
- * Base class for {@link HandlerMethodArgumentResolver} implementations with access to a
+ * Base class for {@link } implementations with access to a
  * {@code ReactiveAdapterRegistry} and methods to check for method parameter support.
  *
  * @author Rossen Stoyanchev

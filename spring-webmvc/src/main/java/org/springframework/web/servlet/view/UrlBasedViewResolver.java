@@ -461,35 +461,45 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * superclass always creating instances of the required view class.
 	 * @see #loadView
 	 * @see #requiredViewClass
+	 * 根据视图名 和 Local属性 生成一个视图对象
 	 */
 	@Override
 	protected View createView(String viewName, Locale locale) throws Exception {
 		// If this resolver is not supposed to handle the given view,
 		// return null to pass on to the next resolver in the chain.
+		// 判断能否处理 这里就是判断 该 Resolver 维护的全部 viewName 中是否存在 viewName 那么应该是在某个地方做了配置
+		// 视图名中应该默认配置了 redirect: 相关的信息 不然在这层就应该返回了 走不到下面
 		if (!canHandle(viewName, locale)) {
 			return null;
 		}
 
 		// Check for special "redirect:" prefix.
+		// 如果视图名包含了重定向  那么 以其他方式返回 而不进行渲染
 		if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
+			// 获取 被重定向的目标 url
 			String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
+			// redirectView 代表重定向
 			RedirectView view = new RedirectView(redirectUrl,
 					isRedirectContextRelative(), isRedirectHttp10Compatible());
 			String[] hosts = getRedirectHosts();
 			if (hosts != null) {
 				view.setHosts(hosts);
 			}
+			// 做一些 spring 的通用加工后返回
 			return applyLifecycleMethods(REDIRECT_URL_PREFIX, view);
 		}
 
 		// Check for special "forward:" prefix.
+		// 如果是 forward: 为前缀
 		if (viewName.startsWith(FORWARD_URL_PREFIX)) {
 			String forwardUrl = viewName.substring(FORWARD_URL_PREFIX.length());
+			// 生成 InternalResourceView 对象
 			InternalResourceView view = new InternalResourceView(forwardUrl);
 			return applyLifecycleMethods(FORWARD_URL_PREFIX, view);
 		}
 
 		// Else fall back to superclass implementation: calling loadView.
+		// 默认情况 应该都是走这里
 		return super.createView(viewName, locale);
 	}
 
@@ -522,10 +532,12 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * @see #buildView(String)
 	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet
+	 * 加载视图对象
 	 */
 	@Override
 	protected View loadView(String viewName, Locale locale) throws Exception {
 		AbstractUrlBasedView view = buildView(viewName);
+		// 为生成的 Bean 进行加工
 		View result = applyLifecycleMethods(viewName, view);
 		return (view.checkResource(locale) ? result : null);
 	}
@@ -543,11 +555,14 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * @return the View instance
 	 * @throws Exception if the view couldn't be resolved
 	 * @see #loadView(String, java.util.Locale)
+	 * 根据视图名构建 视图对象  核心逻辑就是初始化了一个 视图对象并设置各个属性 并没有调用 render()  子类有对该方法进行重写
 	 */
 	protected AbstractUrlBasedView buildView(String viewName) throws Exception {
+		// 视图对象是外部设置进来的
 		Class<?> viewClass = getViewClass();
 		Assert.state(viewClass != null, "No view class");
 
+		// 实例化对象
 		AbstractUrlBasedView view = (AbstractUrlBasedView) BeanUtils.instantiateClass(viewClass);
 		view.setUrl(getPrefix() + viewName + getSuffix());
 
@@ -556,6 +571,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 			view.setContentType(contentType);
 		}
 
+		// 为视图 设置能获取到 属性 便于展示  下面的 getXXX 只是直接返回对应的属性 逻辑比较简单
 		view.setRequestContextAttribute(getRequestContextAttribute());
 		view.setAttributesMap(getAttributesMap());
 
@@ -591,6 +607,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	protected View applyLifecycleMethods(String viewName, AbstractUrlBasedView view) {
 		ApplicationContext context = getApplicationContext();
 		if (context != null) {
+			// 为生成的普通 bean 设置 spring 的一些加工 比如 setBeanFactory 以及各种前置后置方法的 调用
 			Object initialized = context.getAutowireCapableBeanFactory().initializeBean(view, viewName);
 			if (initialized instanceof View) {
 				return (View) initialized;

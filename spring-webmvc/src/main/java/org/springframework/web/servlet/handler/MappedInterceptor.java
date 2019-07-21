@@ -41,17 +41,30 @@ import org.springframework.web.servlet.ModelAndView;
  * @author Rossen Stoyanchev
  * @author Brian Clozel
  * @since 3.0
+ * 使用装饰器模式增强拦截器
  */
 public final class MappedInterceptor implements HandlerInterceptor {
 
+	/**
+	 * 代表被拦截的url
+	 */
 	@Nullable
 	private final String[] includePatterns;
 
+	/**
+	 * 避免被拦截的url
+	 */
 	@Nullable
 	private final String[] excludePatterns;
 
+	/**
+	 * 内部 被包装的 拦截器
+	 */
 	private final HandlerInterceptor interceptor;
 
+	/**
+	 * 用于匹配路径
+	 */
 	@Nullable
 	private PathMatcher pathMatcher;
 
@@ -84,6 +97,7 @@ public final class MappedInterceptor implements HandlerInterceptor {
 	 * Create a new MappedInterceptor instance.
 	 * @param includePatterns the path patterns to map (empty for matching to all paths)
 	 * @param interceptor the WebRequestInterceptor instance to map to the given patterns
+	 *                    WebRequestInterceptor 代表一个 异步的拦截器 这里需要适配成 普通的拦截器
 	 */
 	public MappedInterceptor(@Nullable String[] includePatterns, WebRequestInterceptor interceptor) {
 		this(includePatterns, null, interceptor);

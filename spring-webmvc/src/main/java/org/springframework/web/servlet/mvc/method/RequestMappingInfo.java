@@ -51,6 +51,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @since 3.1
+ * 针对 @RequestMapping注解 抽取出来的信息  实现了 用于从req 中找出 匹配条件的接口 使用时 根据传入的 req 以及各个条件对象 进行匹配 并确定合适的handler
  */
 public final class RequestMappingInfo implements RequestCondition<RequestMappingInfo> {
 
@@ -59,19 +60,42 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 
 	private final PatternsRequestCondition patternsCondition;
 
+	/**
+	 * 匹配请求方法
+	 */
 	private final RequestMethodsRequestCondition methodsCondition;
 
 	private final ParamsRequestCondition paramsCondition;
 
+	/**
+	 * 匹配请求头
+	 */
 	private final HeadersRequestCondition headersCondition;
 
+	/**
+	 * 匹配 consumer 属性
+	 */
 	private final ConsumesRequestCondition consumesCondition;
 
+	/**
+	 * 匹配 producer属性
+	 */
 	private final ProducesRequestCondition producesCondition;
 
 	private final RequestConditionHolder customConditionHolder;
 
 
+	/**
+	 * 该对象内部 同时维护了 多个 匹配条件对象
+	 * @param name
+	 * @param patterns
+	 * @param methods
+	 * @param params
+	 * @param headers
+	 * @param consumes
+	 * @param produces
+	 * @param custom
+	 */
 	public RequestMappingInfo(@Nullable String name, @Nullable PatternsRequestCondition patterns,
 			@Nullable RequestMethodsRequestCondition methods, @Nullable ParamsRequestCondition params,
 			@Nullable HeadersRequestCondition headers, @Nullable ConsumesRequestCondition consumes,
@@ -212,6 +236,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	 * <p>For example the returned instance may contain the subset of URL patterns that match to
 	 * the current request, sorted with best matching patterns on top.
 	 * @return a new instance in case all conditions match; or {@code null} otherwise
+	 * 判断 @RequestMapping 中的信息 是否于 request 匹配
 	 */
 	@Override
 	@Nullable
@@ -498,6 +523,9 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 		public RequestMappingInfo build() {
 			ContentNegotiationManager manager = this.options.getContentNegotiationManager();
 
+			/**
+			 * 通过注解中 对应的属性 比如 headers  生成对应的匹配条件对象 Condition 在将 req 与 RequestMapping 做匹配时 就是要判断与注解上的信息是否匹配
+			 */
 			PatternsRequestCondition patternsCondition = new PatternsRequestCondition(
 					this.paths, this.options.getUrlPathHelper(), this.options.getPathMatcher(),
 					this.options.useSuffixPatternMatch(), this.options.useTrailingSlashMatch(),

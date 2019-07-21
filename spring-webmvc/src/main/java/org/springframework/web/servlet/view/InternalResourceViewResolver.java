@@ -45,6 +45,7 @@ import org.springframework.util.ClassUtils;
  * @see #setRequestContextAttribute
  * @see InternalResourceView
  * @see JstlView
+ * 在没有配置 ViewResolver 时 spring mvc 将默认使用该
  */
 public class InternalResourceViewResolver extends UrlBasedViewResolver {
 
@@ -100,7 +101,12 @@ public class InternalResourceViewResolver extends UrlBasedViewResolver {
 		this.alwaysInclude = alwaysInclude;
 	}
 
-
+	/**
+	 * 使用给定的 视图名生成 视图对象 在父类方法基础上 多设置几个属性
+	 * @param viewName the name of the view to build
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	protected AbstractUrlBasedView buildView(String viewName) throws Exception {
 		InternalResourceView view = (InternalResourceView) super.buildView(viewName);
